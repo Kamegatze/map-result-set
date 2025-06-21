@@ -10,5 +10,5 @@
 # Binary files should be left untouched
 *.jar           binary
 
-.java           text eol=lf
-
+*.java           text eol=lf
+*.gradle         text eol=lf
