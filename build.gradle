@@ -17,7 +17,7 @@ plugins {
 
 spotless {
 	java {
-		target("/*.java")
+		target("**/*.java")
 		googleJavaFormat().aosp()
 		lineEndings = LineEnding.UNIX
 		importOrder()
@@ -39,6 +39,7 @@ repositories {
 
 dependencies {
 	implementation(libs.spring.jdbc)
+	implementation(libs.auto.service)
 }
 
 // Apply a specific Java toolchain to ease working on different environments.
