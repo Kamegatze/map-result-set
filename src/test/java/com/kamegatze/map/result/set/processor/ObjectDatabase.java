@@ -1,5 +1,7 @@
 package com.kamegatze.map.result.set.processor;
 
+import com.kamegatze.map.result.set.Column;
+
 public final class ObjectDatabase {
 
     private String version;
@@ -7,6 +9,28 @@ public final class ObjectDatabase {
     private String name;
 
     private String id;
+
+    @Column("is_enable")
+    private boolean isEnable;
+
+    @Column("is_disable")
+    private Boolean isDisable;
+
+    public Boolean getDisable() {
+        return isDisable;
+    }
+
+    public void setDisable(Boolean disable) {
+        isDisable = disable;
+    }
+
+    public boolean isEnable() {
+        return isEnable;
+    }
+
+    public void setEnable(boolean enable) {
+        isEnable = enable;
+    }
 
     public String getVersion() {
         return version;
