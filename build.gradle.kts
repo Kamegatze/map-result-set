@@ -12,16 +12,8 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 plugins {
     // Apply the java-library plugin for API and implementation separation.
     java
-    `java-library`
-    `maven-publish`
     alias(libs.plugins.spotless)
 }
-
-group = "com.kamegatze"
-
-val artifact = "map-result-set"
-
-version = "0.0.1-SNAPSHOT"
 
 spotless {
     java {
@@ -50,9 +42,20 @@ repositories {
 
 dependencies {
     testImplementation(libs.spring.jdbc)
+
     testImplementation(libs.map.result.set)
+
     testImplementation(platform(libs.junit.bom))
     testImplementation(libs.junit.jupiter)
+
+    testImplementation(libs.testcontainer)
+    testImplementation(libs.testcontainer.jupiter)
+    testImplementation(libs.testcontainer.postgresql)
+
+    testImplementation(libs.postgresql)
+
+    testImplementation(libs.bundles.flyway)
+
     testRuntimeOnly(libs.junit.platform.launcher)
     testAnnotationProcessor(libs.map.result.set)
 }
@@ -66,15 +69,3 @@ tasks.test {
 
 // Apply a specific Java toolchain to ease working on different environments.
 java { toolchain { languageVersion = JavaLanguageVersion.of(17) } }
-
-publishing {
-    publications {
-        create<MavenPublication>("maven") {
-            groupId = group as String
-            artifactId = artifact
-            version = project.version as String
-
-            from(components["java"])
-        }
-    }
-}

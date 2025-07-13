@@ -5,7 +5,9 @@
 spotless-version = "7.0.4"
 junit-version = "5.13.0"
 spring-jdbc-version = "5.3.39"
-
+testcontainer-version = "1.21.3"
+postgresql-version = "42.7.7"
+flyway-version = "11.10.1"
 
 [libraries]
 spring-jdbc = {module = "org.springframework:spring-jdbc", version.ref = "spring-jdbc-version"}
@@ -14,6 +16,19 @@ map-result-set = {module = "com.kamegatze:map-result-set-app"}
 junit-jupiter = {module = "org.junit.jupiter:junit-jupiter", version.ref = "junit-version"}
 junit-bom = {module = "org.junit:junit-bom", version.ref = "junit-version"}
 junit-platform-launcher = {module = "org.junit.platform:junit-platform-launcher"}
+
+testcontainer = {module = "org.testcontainers:testcontainers", version.ref = "testcontainer-version"}
+testcontainer-jupiter = {module = "org.testcontainers:junit-jupiter", version.ref = "testcontainer-version"}
+testcontainer-postgresql = {module = "org.testcontainers:postgresql", version.ref = "testcontainer-version"}
+
+postgresql = {module = "org.postgresql:postgresql", version.ref = "postgresql-version"}
+
+flyway-core = {module = "org.flywaydb:flyway-core", version.ref = "flyway-version"}
+flyway-postgresql = {module = "org.flywaydb:flyway-database-postgresql", version.ref = "flyway-version"}
+
+[bundles]
+flyway = ["flyway-core", "flyway-postgresql"]
+
 
 [plugins]
 spotless = {id = "com.diffplug.spotless", version.ref = "spotless-version"}
