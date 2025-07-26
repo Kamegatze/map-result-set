@@ -3,12 +3,14 @@ package com.kamegatze.map.result.set.processor.impl;
 import com.kamegatze.map.result.set.Column;
 import com.kamegatze.map.result.set.Cursor;
 import com.kamegatze.map.result.set.processor.ProcessorAnnotation;
+import com.kamegatze.map.result.set.processor.exception.ExtractResultSetException;
 import com.kamegatze.map.result.set.processor.exception.MoreThenOneItemException;
 import com.kamegatze.map.result.set.processor.exception.WriteJavaFileException;
 import com.palantir.javapoet.ClassName;
 import com.palantir.javapoet.CodeBlock;
 import com.palantir.javapoet.JavaFile;
 import com.palantir.javapoet.MethodSpec;
+import com.palantir.javapoet.ParameterSpec;
 import com.palantir.javapoet.ParameterizedTypeName;
 import com.palantir.javapoet.TypeName;
 import com.palantir.javapoet.TypeSpec;
@@ -37,6 +39,10 @@ public final class ProcessorAnnotationImpl implements ProcessorAnnotation {
 
     private static final String EXTRACT_ROW_MAPPER = "extractRowMapper";
     private static final String EXTRACT_ROW_MAPPER_ONE = "extractRowMapperOne";
+
+    private static final String ROOT_VARIABLE_ROW_MAPPER = "root";
+
+    private static final String RETURN_TEMPLATE = "return %s";
 
     public ProcessorAnnotationImpl(ProcessingEnvironment processingEnvironment) {
         this.processingEnvironment = processingEnvironment;
@@ -124,12 +130,18 @@ public final class ProcessorAnnotationImpl implements ProcessorAnnotation {
         if (element instanceof ExecutableElement executableElement) {
             var returnType = TypeName.get(executableElement.getReturnType());
 
-            var codeBlock = createCodeBlock(executableElement.getReturnType());
+            var codeBlocks = createCodeBlock(executableElement.getReturnType(), executableElement);
+
+            var argument =
+                    executableElement.getParameters().stream().map(ParameterSpec::get).toList();
 
             return MethodSpec.methodBuilder(element.getSimpleName().toString())
                     .addModifiers(Modifier.PUBLIC)
+                    .addAnnotation(Override.class)
+                    .addParameters(argument)
                     .returns(returnType)
-                    .addCode(codeBlock)
+                    .addCode(codeBlocks.get(0))
+                    .addCode(codeBlocks.get(1))
                     .build();
         }
         throw new ClassCastException(
@@ -140,7 +152,8 @@ public final class ProcessorAnnotationImpl implements ProcessorAnnotation {
                                 element.toString()));
     }
 
-    private CodeBlock createCodeBlock(TypeMirror typeMirror) {
+    private List<CodeBlock> createCodeBlock(
+            TypeMirror typeMirror, ExecutableElement executableElement) {
         var element = processingEnvironment.getTypeUtils().asElement(typeMirror);
         var packageOf = processingEnvironment.getElementUtils().getPackageOf(element);
 
@@ -150,10 +163,31 @@ public final class ProcessorAnnotationImpl implements ProcessorAnnotation {
         if (canonicalName.equals(RowMapper.class.getCanonicalName())) {
             return createRowMapper(typeMirror);
         }
-        return extractObject();
+        return extractObject(
+                typeMirror, variableName(executableElement, ResultSet.class.getCanonicalName()));
     }
 
-    private CodeBlock createRowMapper(TypeMirror typeMirror) {
+    private String variableName(ExecutableElement executableElement, String canonicalNameClass) {
+        return executableElement.getParameters().stream()
+                .filter(
+                        it -> {
+                            var element =
+                                    processingEnvironment.getTypeUtils().asElement(it.asType());
+                            var packageOf =
+                                    processingEnvironment.getElementUtils().getPackageOf(element);
+                            var canonicalName =
+                                    packageOf.getQualifiedName().toString()
+                                            + "."
+                                            + element.getSimpleName().toString();
+                            return canonicalName.equals(canonicalNameClass);
+                        })
+                .map(it -> it.getSimpleName().toString())
+                .findFirst()
+                .orElseThrow(
+                        () -> new NoSuchElementException("No such variable name for ResultSet"));
+    }
+
+    private List<CodeBlock> createRowMapper(TypeMirror typeMirror) {
         var generic =
                 getOneGeneric(typeMirror)
                         .orElseThrow(
@@ -165,11 +199,40 @@ public final class ProcessorAnnotationImpl implements ProcessorAnnotation {
         var fieldsName = getFieldsName(generic);
 
         var root = createTree(fieldsName, generic);
-        return createRowMapper(root);
+        return List.of(
+                createRowMapper(root),
+                CodeBlock.builder()
+                        .addStatement(RETURN_TEMPLATE.formatted(ROOT_VARIABLE_ROW_MAPPER))
+                        .build());
     }
 
-    private CodeBlock extractObject() {
-        return null;
+    private List<CodeBlock> extractObject(TypeMirror typeMirror, String nameVariableResultSet) {
+        var genericOptional = getOneGeneric(typeMirror);
+
+        var fieldsName = getFieldsName(genericOptional.orElse(typeMirror));
+
+        var methodNameExtract =
+                genericOptional.isPresent() ? EXTRACT_ROW_MAPPER : EXTRACT_ROW_MAPPER_ONE;
+
+        var root = createTree(fieldsName, genericOptional.orElse(typeMirror));
+        return List.of(
+                createRowMapper(root),
+                CodeBlock.builder()
+                        .beginControlFlow("try")
+                        .addStatement(
+                                "return %s(%s, %s)"
+                                        .formatted(
+                                                methodNameExtract,
+                                                ROOT_VARIABLE_ROW_MAPPER,
+                                                nameVariableResultSet))
+                        .endControlFlow()
+                        .beginControlFlow("catch($T e)", SQLException.class)
+                        .addStatement(
+                                "throw new $T($S, e)",
+                                ExtractResultSetException.class,
+                                "Error extract from ResultSet")
+                        .endControlFlow()
+                        .build());
     }
 
     private List<VariableElement> getFieldsName(TypeMirror typeMirror) {
@@ -269,7 +332,11 @@ public final class ProcessorAnnotationImpl implements ProcessorAnnotation {
         var stack = new ArrayDeque<>(root.children());
         var rootResultSet = "rs";
 
-        builder.add("return (%s, rowNum) -> {".formatted(rootResultSet) + "\n");
+        builder.add(
+                "$T %s = (%s, rowNum) -> {".formatted(ROOT_VARIABLE_ROW_MAPPER, rootResultSet)
+                        + "\n",
+                ParameterizedTypeName.get(
+                        ClassName.get(RowMapper.class), TypeName.get(root.typeMirror())));
         builder.indent();
 
         builder.add(createFields(root, rootResultSet));
@@ -294,7 +361,7 @@ public final class ProcessorAnnotationImpl implements ProcessorAnnotation {
 
                 builder.add(createNewObject(item));
 
-                builder.addStatement("return %s".formatted(item.name() + item.uuid()));
+                builder.addStatement(RETURN_TEMPLATE.formatted(item.name() + item.uuid()));
                 builder.unindent();
                 builder.add("};\n");
 
@@ -306,9 +373,9 @@ public final class ProcessorAnnotationImpl implements ProcessorAnnotation {
 
         builder.add(createNewObject(root));
 
-        builder.addStatement("return %s".formatted(root.name() + root.uuid()));
+        builder.addStatement(RETURN_TEMPLATE.formatted(root.name() + root.uuid()));
         builder.unindent();
-        builder.add("};");
+        builder.add("};\n");
         return builder.build();
     }
 

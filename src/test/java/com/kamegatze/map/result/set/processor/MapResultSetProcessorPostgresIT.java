@@ -1,6 +1,7 @@
 package com.kamegatze.map.result.set.processor;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.kamegatze.map.result.set.MapResultSetUtils;
 import com.kamegatze.map.result.set.processor.university.mapper.StudentClassMapper;
@@ -127,5 +128,161 @@ class MapResultSetProcessorPostgresIT {
         assertFalse(subjectsTwo.isEmpty());
         var subjectsThree = studentClassNestedOneList.get(2).subject();
         assertFalse(subjectsThree.isEmpty());
+    }
+
+    @Test
+    void givenStudentClassListWithoutNestedViaDatasource_whenQueryAllStudent_thenGetListStudent()
+            throws Exception {
+        var mapper = MapResultSetUtils.getMapper(StudentClassMapper.class);
+
+        try (var connection = dataSource.getConnection();
+                var statement = connection.prepareStatement("select * from student")) {
+            statement.execute();
+            var resultSet = statement.getResultSet();
+
+            var studentClassList = mapper.getStudentsClass(resultSet);
+
+            assertFalse(studentClassList.isEmpty());
+        }
+    }
+
+    @Test
+    void givenStudentRecordListWithoutNestedViaDatasource_whenQueryAllStudent_thenGetListStudent()
+            throws Exception {
+        var mapper = MapResultSetUtils.getMapper(StudentRecordMapper.class);
+
+        try (var connection = dataSource.getConnection();
+                var statement = connection.prepareStatement("select * from student")) {
+            statement.execute();
+            var resultSet = statement.getResultSet();
+
+            var studentRecordList = mapper.getStudentRecordList(resultSet);
+
+            assertFalse(studentRecordList.isEmpty());
+        }
+    }
+
+    @Test
+    void givenStudentClassWithoutNested_whenQueryAllStudent_thenGetListStudent() throws Exception {
+        var mapper = MapResultSetUtils.getMapper(StudentClassMapper.class);
+
+        try (var connection = dataSource.getConnection();
+                var statement = connection.prepareStatement("select * from student where id = 1")) {
+            statement.execute();
+            var resultSet = statement.getResultSet();
+
+            var studentClass = mapper.getStudentClass(resultSet);
+
+            assertNotNull(studentClass);
+        }
+    }
+
+    @Test
+    void givenStudentRecordWithoutNested_whenQueryAllStudent_thenGetListStudent() throws Exception {
+        var mapper = MapResultSetUtils.getMapper(StudentRecordMapper.class);
+
+        try (var connection = dataSource.getConnection();
+                var statement = connection.prepareStatement("select * from student where id = 1")) {
+            statement.execute();
+            var resultSet = statement.getResultSet();
+
+            var studentRecord = mapper.getStudentRecord(resultSet);
+
+            assertNotNull(studentRecord);
+        }
+    }
+
+    @Test
+    void givenStudentClassNestedOneViaDatasource_whenQueryAllStudent_thenGetListStudent()
+            throws Exception {
+        var mapper = MapResultSetUtils.getMapper(StudentClassNestedOneMapper.class);
+
+        try (var connection = dataSource.getConnection();
+                var statement =
+                        connection.prepareStatement(
+                                """
+                select s.id, s.first_name, s.last_name, s.patronymic, s.birthdate,
+                cursor(format('select * from subject s left join student_subject ss on s.id = ss.subject_id where ss.student_id = %s',
+                s.id)) as subject
+                from student s
+                """)) {
+            statement.execute();
+            var resultSet = statement.getResultSet();
+
+            var studentClassNestedOneList = mapper.getStudentClassNestedOneList(resultSet);
+
+            assertFalse(studentClassNestedOneList.isEmpty());
+        }
+    }
+
+    @Test
+    void givenStudentRecordNestedOneViaDatasource_whenQueryAllStudent_thenGetListStudent()
+            throws Exception {
+        var mapper = MapResultSetUtils.getMapper(StudentRecordNestedOneMapper.class);
+
+        try (var connection = dataSource.getConnection();
+                var statement =
+                        connection.prepareStatement(
+                                """
+                select s.id, s.first_name, s.last_name, s.patronymic, s.birthdate,
+                cursor(format('select * from subject s left join student_subject ss on s.id = ss.subject_id where ss.student_id = %s',
+                s.id)) as subject
+                from student s
+                """)) {
+            statement.execute();
+            var resultSet = statement.getResultSet();
+
+            var studentRecordNestedOneList = mapper.getStudentRecordNestedOneList(resultSet);
+
+            assertFalse(studentRecordNestedOneList.isEmpty());
+        }
+    }
+
+    @Test
+    void givenStudentClassNestedOneViaDatasource_whenQueryAllStudent_thenGetList()
+            throws Exception {
+        var mapper = MapResultSetUtils.getMapper(StudentClassNestedOneMapper.class);
+
+        try (var connection = dataSource.getConnection();
+                var statement =
+                        connection.prepareStatement(
+                                """
+                select s.id, s.first_name, s.last_name, s.patronymic, s.birthdate,
+                cursor(format('select * from subject s left join student_subject ss on s.id = ss.subject_id where ss.student_id = %s',
+                s.id)) as subject
+                from student s
+                where id = 1
+                """)) {
+            statement.execute();
+            var resultSet = statement.getResultSet();
+
+            var studentClassNestedOne = mapper.getStudentClassNestedOne(resultSet);
+
+            assertNotNull(studentClassNestedOne);
+        }
+    }
+
+    @Test
+    void givenStudentRecordNestedOneViaDatasource_whenQueryAllStudent_thenGetList()
+            throws Exception {
+        var mapper = MapResultSetUtils.getMapper(StudentRecordNestedOneMapper.class);
+
+        try (var connection = dataSource.getConnection();
+                var statement =
+                        connection.prepareStatement(
+                                """
+                select s.id, s.first_name, s.last_name, s.patronymic, s.birthdate,
+                cursor(format('select * from subject s left join student_subject ss on s.id = ss.subject_id where ss.student_id = %s',
+                s.id)) as subject
+                from student s
+                where id = 1
+                """)) {
+            statement.execute();
+            var resultSet = statement.getResultSet();
+
+            var studentRecordNestedOne = mapper.getStudentRecordNestedOne(resultSet);
+
+            assertNotNull(studentRecordNestedOne);
+        }
     }
 }
