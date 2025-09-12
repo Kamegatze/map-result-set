@@ -3,9 +3,9 @@ package com.kamegatze.map.result.set.processor;
 import com.palantir.javapoet.JavaFile;
 import javax.lang.model.element.Element;
 
-public interface ProcessorAnnotation {
+public interface GenerateImplementationMapResultSetService {
 
-    JavaFile processor(Element element);
+    JavaFile generate(Element element);
 
     void write(JavaFile javaFile);
 }
