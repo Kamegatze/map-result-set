@@ -58,7 +58,7 @@ public record GenerateRowMapperImpl(
 
                 builder.add(createFields(item, nameResultSet));
 
-                builder.add(createNewObject(item));
+                builder.add(createNewObject(item, nameResultSet));
 
                 builder.addStatement(
                         CodeUtility.RETURN_TEMPLATE.formatted(item.name() + item.uuid()));
@@ -71,7 +71,7 @@ public record GenerateRowMapperImpl(
             }
         }
 
-        builder.add(createNewObject(root));
+        builder.add(createNewObject(root, rootResultSet));
 
         builder.addStatement(CodeUtility.RETURN_TEMPLATE.formatted(root.name() + root.uuid()));
         builder.unindent();
@@ -93,16 +93,16 @@ public record GenerateRowMapperImpl(
         return builder.build();
     }
 
-    private CodeBlock createNewObject(ClassTree item) {
+    private CodeBlock createNewObject(ClassTree item, String resultSetName) {
         var typeMirror = CodeUtility.getOneGeneric(item.typeMirror()).orElse(item.typeMirror());
         if (ElementKind.RECORD.equals(
                 processingEnvironment.getTypeUtils().asElement(typeMirror).getKind())) {
-            return createNewRecord(item, typeMirror);
+            return createNewRecord(item, typeMirror, resultSetName);
         }
-        return createNewClass(item, typeMirror);
+        return createNewClass(item, typeMirror, resultSetName);
     }
 
-    private CodeBlock createNewClass(ClassTree item, TypeMirror typeMirror) {
+    private CodeBlock createNewClass(ClassTree item, TypeMirror typeMirror, String resultSetName) {
         var builder = CodeBlock.builder();
         builder.addStatement(
                 "var %s = new $T()".formatted(item.name() + item.uuid()), TypeName.get(typeMirror));
@@ -121,7 +121,7 @@ public record GenerateRowMapperImpl(
                                 return;
                             }
                             var genericOption = CodeUtility.getOneGeneric(it.asType());
-                            var template = "%s.%s(%s(%s, ($T) rs.getObject($S)))";
+                            var template = "%s.%s(%s(%s, ($T) %s.getObject($S)))";
 
                             if (genericOption.isPresent()) {
                                 builder.addStatement(
@@ -129,7 +129,8 @@ public record GenerateRowMapperImpl(
                                                 item.name() + item.uuid(),
                                                 CodeUtility.generateSetMethodName(it.toString()),
                                                 CodeUtility.EXTRACT_ROW_MAPPER,
-                                                it.getSimpleName().toString() + item.uuid()),
+                                                it.getSimpleName().toString() + item.uuid(),
+                                                resultSetName),
                                         ResultSet.class,
                                         CodeUtility.getColumnName(it));
                                 return;
@@ -139,14 +140,15 @@ public record GenerateRowMapperImpl(
                                             item.name() + item.uuid(),
                                             CodeUtility.generateSetMethodName(it.toString()),
                                             CodeUtility.EXTRACT_ROW_MAPPER_ONE,
-                                            it.getSimpleName().toString() + item.uuid()),
+                                            it.getSimpleName().toString() + item.uuid(),
+                                            resultSetName),
                                     ResultSet.class,
                                     CodeUtility.getColumnName(it));
                         });
         return builder.build();
     }
 
-    private CodeBlock createNewRecord(ClassTree item, TypeMirror typeMirror) {
+    private CodeBlock createNewRecord(ClassTree item, TypeMirror typeMirror, String resultSetName) {
         var builder = CodeBlock.builder();
         builder.add(
                 "var %s = new $T(".formatted(item.name() + item.uuid()) + "\n",
@@ -154,7 +156,7 @@ public record GenerateRowMapperImpl(
         IntStream.range(0, item.fields().size())
                 .forEach(
                         index -> {
-                            var templateExtract = "%s(%s, ($T) rs.getObject($S))%s";
+                            var templateExtract = "%s(%s, ($T) %s.getObject($S))%s";
                             var template = "%s%s";
                             var postfix = index == item.fields().size() - 1 ? ");" : ",";
                             var genericOption =
@@ -182,6 +184,7 @@ public record GenerateRowMapperImpl(
                                                                         .getSimpleName()
                                                                         .toString()
                                                                 + item.uuid(),
+                                                        resultSetName,
                                                         postfix)
                                                 + "\n",
                                         ResultSet.class,
@@ -196,6 +199,7 @@ public record GenerateRowMapperImpl(
                                                                     .getSimpleName()
                                                                     .toString()
                                                             + item.uuid(),
+                                                    resultSetName,
                                                     postfix)
                                             + "\n",
                                     ResultSet.class,

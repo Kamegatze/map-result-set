@@ -1,13 +1,9 @@
 package com.kamegatze.map.result.set.processor;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 import com.kamegatze.map.result.set.MapResultSetUtils;
-import com.kamegatze.map.result.set.processor.university.mapper.StudentClassMapper;
-import com.kamegatze.map.result.set.processor.university.mapper.StudentClassNestedOneMapper;
-import com.kamegatze.map.result.set.processor.university.mapper.StudentRecordMapper;
-import com.kamegatze.map.result.set.processor.university.mapper.StudentRecordNestedOneMapper;
+import com.kamegatze.map.result.set.processor.university.mapper.*;
 import java.sql.Connection;
 import java.sql.SQLException;
 import javax.sql.DataSource;
@@ -239,8 +235,7 @@ class MapResultSetProcessorPostgresIT {
     }
 
     @Test
-    void givenStudentClassNestedOneViaDatasource_whenQueryAllStudent_thenGetList()
-            throws Exception {
+    void givenStudentClassNestedOneViaDatasource_whenQueryAllStudent_thenOne() throws Exception {
         var mapper = MapResultSetUtils.getMapper(StudentClassNestedOneMapper.class);
 
         try (var connection = dataSource.getConnection();
@@ -263,8 +258,7 @@ class MapResultSetProcessorPostgresIT {
     }
 
     @Test
-    void givenStudentRecordNestedOneViaDatasource_whenQueryAllStudent_thenGetList()
-            throws Exception {
+    void givenStudentRecordNestedOneViaDatasource_whenQueryAllStudent_thenOne() throws Exception {
         var mapper = MapResultSetUtils.getMapper(StudentRecordNestedOneMapper.class);
 
         try (var connection = dataSource.getConnection();
@@ -283,6 +277,222 @@ class MapResultSetProcessorPostgresIT {
             var studentRecordNestedOne = mapper.getStudentRecordNestedOne(resultSet);
 
             assertNotNull(studentRecordNestedOne);
+        }
+    }
+
+    @Test
+    void givenStudentClassNestedTwo_whenQueryAllStudent_thenGetListStudent() {
+        var mapper = MapResultSetUtils.getMapper(StudentClassNestedTwoMapper.class);
+
+        var studentList =
+                jdbcTemplate.query(
+                        """
+                select s.id, s.first_name, s.last_name, s.patronymic, s.birthdate,
+                cursor('select s.id, s.name
+                ,cursor(''select * from teacher t left join teacher_subject ts on t.id = ts.teacher_id where ts.subject_id = '' || s.id::varchar(255)) as teachers
+                from subject s left join student_subject ss on s.id = ss.subject_id where ss.student_id = ' ||
+                s.id::varchar(255)) as subject
+                from student s
+                """,
+                        mapper.getRowMapper());
+
+        assertNotNull(studentList);
+        assertFalse(studentList.isEmpty());
+        assertNotNull(studentList.get(0).getSubject());
+        assertFalse(studentList.get(0).getSubject().isEmpty());
+        assertNotNull(studentList.get(0).getSubject().get(0).getTeachers());
+        assertFalse(studentList.get(0).getSubject().get(0).getTeachers().isEmpty());
+    }
+
+    @Test
+    void givenStudentClassNestedTwo_whenQueryAllStudent_thenGetOneStudent() {
+        var mapper = MapResultSetUtils.getMapper(StudentClassNestedTwoMapper.class);
+
+        var student =
+                jdbcTemplate.queryForObject(
+                        """
+                select s.id, s.first_name, s.last_name, s.patronymic, s.birthdate,
+                cursor('select s.id, s.name
+                ,cursor(''select * from teacher t left join teacher_subject ts on t.id = ts.teacher_id where ts.subject_id = '' || s.id::varchar(255)) as teachers
+                from subject s left join student_subject ss on s.id = ss.subject_id where ss.student_id = ' ||
+                s.id::varchar(255)) as subject
+                from student s
+                where s.id = 1
+                """,
+                        mapper.getRowMapper());
+
+        assertNotNull(student);
+        assertNotNull(student.getSubject());
+        assertFalse(student.getSubject().isEmpty());
+        assertNotNull(student.getSubject().get(0).getTeachers());
+        assertFalse(student.getSubject().get(0).getTeachers().isEmpty());
+    }
+
+    @Test
+    void givenStudentClassNestedTwoViaDatasource_whenQueryAllStudent_thenGetListStudent()
+            throws SQLException {
+        var mapper = MapResultSetUtils.getMapper(StudentClassNestedTwoMapper.class);
+
+        try (var connection = dataSource.getConnection();
+                var statement =
+                        connection.prepareStatement(
+                                """
+                select s.id, s.first_name, s.last_name, s.patronymic, s.birthdate,
+                cursor('select s.id, s.name
+                ,cursor(''select * from teacher t left join teacher_subject ts on t.id = ts.teacher_id where ts.subject_id = '' || s.id::varchar(255)) as teachers
+                from subject s left join student_subject ss on s.id = ss.subject_id where ss.student_id = ' ||
+                s.id::varchar(255)) as subject
+                from student s
+                """)) {
+            statement.execute();
+            var resultSet = statement.getResultSet();
+
+            var studentList = mapper.getStudentClassNestedTwoAll(resultSet);
+
+            assertNotNull(studentList);
+            assertFalse(studentList.isEmpty());
+            assertNotNull(studentList.get(0).getSubject());
+            assertFalse(studentList.get(0).getSubject().isEmpty());
+            assertNotNull(studentList.get(0).getSubject().get(0).getTeachers());
+            assertFalse(studentList.get(0).getSubject().get(0).getTeachers().isEmpty());
+        }
+    }
+
+    @Test
+    void givenStudentClassNestedTwoViaDatasourceById_whenQueryAllStudent_thenOneStudent()
+            throws SQLException {
+        var mapper = MapResultSetUtils.getMapper(StudentClassNestedTwoMapper.class);
+
+        try (var connection = dataSource.getConnection();
+                var statement =
+                        connection.prepareStatement(
+                                """
+                select s.id, s.first_name, s.last_name, s.patronymic, s.birthdate,
+                cursor('select s.id, s.name
+                ,cursor(''select * from teacher t left join teacher_subject ts on t.id = ts.teacher_id where ts.subject_id = '' || s.id::varchar(255)) as teachers
+                from subject s left join student_subject ss on s.id = ss.subject_id where ss.student_id = ' ||
+                s.id::varchar(255)) as subject
+                from student s
+                where s.id = 1
+                """)) {
+            statement.execute();
+            var resultSet = statement.getResultSet();
+
+            var student = mapper.getStudentClassNestedTwo(resultSet);
+
+            assertNotNull(student);
+            assertNotNull(student.getSubject());
+            assertFalse(student.getSubject().isEmpty());
+            assertNotNull(student.getSubject().get(0).getTeachers());
+            assertFalse(student.getSubject().get(0).getTeachers().isEmpty());
+        }
+    }
+
+    @Test
+    void givenStudentRecordNestedTwo_whenQueryAllStudent_thenGetListStudent() {
+        var mapper = MapResultSetUtils.getMapper(StudentRecordNestedTwoMapper.class);
+
+        var studentList =
+                jdbcTemplate.query(
+                        """
+                select s.id, s.first_name, s.last_name, s.patronymic, s.birthdate,
+                cursor('select s.id, s.name
+                ,cursor(''select * from teacher t left join teacher_subject ts on t.id = ts.teacher_id where ts.subject_id = '' || s.id::varchar(255)) as teachers
+                from subject s left join student_subject ss on s.id = ss.subject_id where ss.student_id = ' ||
+                s.id::varchar(255)) as subject
+                from student s
+                """,
+                        mapper.getRowMapper());
+
+        assertNotNull(studentList);
+        assertFalse(studentList.isEmpty());
+        assertNotNull(studentList.get(0).subject());
+        assertFalse(studentList.get(0).subject().isEmpty());
+        assertNotNull(studentList.get(0).subject().get(0).teachers());
+        assertFalse(studentList.get(0).subject().get(0).teachers().isEmpty());
+    }
+
+    @Test
+    void givenStudentRecordNestedTwo_whenQueryAllStudent_thenGetOneStudent() {
+        var mapper = MapResultSetUtils.getMapper(StudentRecordNestedTwoMapper.class);
+
+        var student =
+                jdbcTemplate.queryForObject(
+                        """
+                select s.id, s.first_name, s.last_name, s.patronymic, s.birthdate,
+                cursor('select s.id, s.name
+                ,cursor(''select * from teacher t left join teacher_subject ts on t.id = ts.teacher_id where ts.subject_id = '' || s.id::varchar(255)) as teachers
+                from subject s left join student_subject ss on s.id = ss.subject_id where ss.student_id = ' ||
+                s.id::varchar(255)) as subject
+                from student s
+                where s.id = 1
+                """,
+                        mapper.getRowMapper());
+
+        assertNotNull(student);
+        assertNotNull(student.subject());
+        assertFalse(student.subject().isEmpty());
+        assertNotNull(student.subject().get(0).teachers());
+        assertFalse(student.subject().get(0).teachers().isEmpty());
+    }
+
+    @Test
+    void givenStudentRecordNestedTwoViaDatasource_whenQueryAllStudent_thenGetListStudent()
+            throws SQLException {
+        var mapper = MapResultSetUtils.getMapper(StudentRecordNestedTwoMapper.class);
+
+        try (var connection = dataSource.getConnection();
+                var statement =
+                        connection.prepareStatement(
+                                """
+                select s.id, s.first_name, s.last_name, s.patronymic, s.birthdate,
+                cursor('select s.id, s.name
+                ,cursor(''select * from teacher t left join teacher_subject ts on t.id = ts.teacher_id where ts.subject_id = '' || s.id::varchar(255)) as teachers
+                from subject s left join student_subject ss on s.id = ss.subject_id where ss.student_id = ' ||
+                s.id::varchar(255)) as subject
+                from student s
+                """)) {
+            statement.execute();
+            var resultSet = statement.getResultSet();
+
+            var studentList = mapper.getStudentRecordNestedTwoAll(resultSet);
+
+            assertNotNull(studentList);
+            assertFalse(studentList.isEmpty());
+            assertNotNull(studentList.get(0).subject());
+            assertFalse(studentList.get(0).subject().isEmpty());
+            assertNotNull(studentList.get(0).subject().get(0).teachers());
+            assertFalse(studentList.get(0).subject().get(0).teachers().isEmpty());
+        }
+    }
+
+    @Test
+    void givenStudentRecordNestedTwoViaDatasourceById_whenQueryAllStudent_thenOneStudent()
+            throws SQLException {
+        var mapper = MapResultSetUtils.getMapper(StudentRecordNestedTwoMapper.class);
+
+        try (var connection = dataSource.getConnection();
+                var statement =
+                        connection.prepareStatement(
+                                """
+                select s.id, s.first_name, s.last_name, s.patronymic, s.birthdate,
+                cursor('select s.id, s.name
+                ,cursor(''select * from teacher t left join teacher_subject ts on t.id = ts.teacher_id where ts.subject_id = '' || s.id::varchar(255)) as teachers
+                from subject s left join student_subject ss on s.id = ss.subject_id where ss.student_id = ' ||
+                s.id::varchar(255)) as subject
+                from student s
+                where s.id = 1
+                """)) {
+            statement.execute();
+            var resultSet = statement.getResultSet();
+
+            var student = mapper.getStudentRecordNestedTwo(resultSet);
+
+            assertNotNull(student);
+            assertNotNull(student.subject());
+            assertFalse(student.subject().isEmpty());
+            assertNotNull(student.subject().get(0).teachers());
+            assertFalse(student.subject().get(0).teachers().isEmpty());
         }
     }
 }
