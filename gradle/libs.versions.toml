@@ -4,10 +4,13 @@
 [versions]
 spotless-version = "7.0.4"
 junit-version = "5.13.0"
-spring-jdbc-version = "5.3.39"
+spring-jdbc-version = "6.2.11"
 testcontainer-version = "1.21.3"
 postgresql-version = "42.7.7"
 flyway-version = "11.10.1"
+oracle-version = "23.9.0.25.07"
+mysql-version = "9.4.0"
+apache-commons-compress-version = "1.28.0"
 
 [libraries]
 spring-jdbc = {module = "org.springframework:spring-jdbc", version.ref = "spring-jdbc-version"}
@@ -20,14 +23,22 @@ junit-platform-launcher = {module = "org.junit.platform:junit-platform-launcher"
 testcontainer = {module = "org.testcontainers:testcontainers", version.ref = "testcontainer-version"}
 testcontainer-jupiter = {module = "org.testcontainers:junit-jupiter", version.ref = "testcontainer-version"}
 testcontainer-postgresql = {module = "org.testcontainers:postgresql", version.ref = "testcontainer-version"}
+testcontainer-oracle-free = {module = "org.testcontainers:oracle-free", version.ref = "testcontainer-version"}
+testcontainer-mysql = {module = "org.testcontainers:mysql", version.ref = "testcontainer-version"}
+
+apache-commons-compress = {module = "org.apache.commons:commons-compress", version.ref = "apache-commons-compress-version"}
 
 postgresql = {module = "org.postgresql:postgresql", version.ref = "postgresql-version"}
+ojdbc = {module = "com.oracle.database.jdbc:ojdbc17", version.ref = "oracle-version"}
+mysql = {module = "com.mysql:mysql-connector-j", version.ref = "mysql-version"}
 
 flyway-core = {module = "org.flywaydb:flyway-core", version.ref = "flyway-version"}
 flyway-postgresql = {module = "org.flywaydb:flyway-database-postgresql", version.ref = "flyway-version"}
+flyway-oracle = {module = "org.flywaydb:flyway-database-oracle", version.ref = "flyway-version"}
+flyway-mysql = {module = "org.flywaydb:flyway-mysql", version.ref = "flyway-version"}
 
 [bundles]
-flyway = ["flyway-core", "flyway-postgresql"]
+flyway = ["flyway-core", "flyway-postgresql", "flyway-oracle", "flyway-mysql"]
 
 
 [plugins]

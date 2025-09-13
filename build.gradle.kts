@@ -51,8 +51,14 @@ dependencies {
     testImplementation(libs.testcontainer)
     testImplementation(libs.testcontainer.jupiter)
     testImplementation(libs.testcontainer.postgresql)
+    testImplementation(libs.testcontainer.oracle.free)
+    testImplementation(libs.testcontainer.mysql)
+
+    testImplementation(libs.apache.commons.compress)
 
     testImplementation(libs.postgresql)
+    testImplementation(libs.ojdbc)
+    testImplementation(libs.mysql)
 
     testImplementation(libs.bundles.flyway)
 

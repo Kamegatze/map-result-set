@@ -1,65 +1,43 @@
 package com.kamegatze.map.result.set.processor;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.kamegatze.map.result.set.MapResultSetUtils;
 import com.kamegatze.map.result.set.processor.university.mapper.*;
-import java.sql.Connection;
 import java.sql.SQLException;
 import javax.sql.DataSource;
+import oracle.jdbc.pool.OracleDataSource;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.postgresql.ds.PGSimpleDataSource;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.oracle.OracleContainer;
 
 @Testcontainers
-class MapResultSetProcessorPostgresIT {
+class MapResultSetProcessorOracleIT {
 
     @Container
-    static PostgreSQLContainer<?> container = new PostgreSQLContainer<>("postgres:16-alpine");
+    static OracleContainer oracle = new OracleContainer("gvenzl/oracle-free:slim-faststart");
 
     static JdbcTemplate jdbcTemplate;
     static DataSource dataSource;
 
-    static class CustomPGDataSource extends PGSimpleDataSource {
-
-        private boolean isAutoCommit = true;
-
-        @Override
-        public Connection getConnection() throws SQLException {
-            var connection = super.getConnection();
-            connection.setAutoCommit(isAutoCommit);
-            return connection;
-        }
-
-        public boolean isAutoCommit() {
-            return isAutoCommit;
-        }
-
-        public void setAutoCommit(boolean autoCommit) {
-            isAutoCommit = autoCommit;
-        }
-    }
-
     @BeforeAll
-    static void setUp() {
-        var datasource = new CustomPGDataSource();
-        datasource.setUrl(container.getJdbcUrl());
-        datasource.setUser(container.getUsername());
-        datasource.setPassword(container.getPassword());
-        datasource.setAutoCommit(false);
-
+    static void setUp() throws SQLException {
+        var datasource = new OracleDataSource();
+        datasource.setUser(oracle.getUsername());
+        datasource.setPassword(oracle.getPassword());
+        datasource.setURL(oracle.getJdbcUrl());
         dataSource = datasource;
 
-        var flyway = Flyway.configure()
-                .locations("classpath:/db/migration/postgres")
-                .dataSource(datasource).load();
-
-        flyway.migrate();
+        Flyway.configure()
+                .locations("classpath:db/migration/oracle")
+                .dataSource(datasource)
+                .load()
+                .migrate();
 
         jdbcTemplate = new JdbcTemplate(datasource);
     }
@@ -70,6 +48,7 @@ class MapResultSetProcessorPostgresIT {
 
         var studentClassList = jdbcTemplate.query("select * from student", mapper.getRowMapper());
 
+        assertNotNull(studentClassList);
         assertFalse(studentClassList.isEmpty());
     }
 
@@ -79,6 +58,7 @@ class MapResultSetProcessorPostgresIT {
 
         var studentRecordList = jdbcTemplate.query("select * from student", mapper.getRowMapper());
 
+        assertNotNull(studentRecordList);
         assertFalse(studentRecordList.isEmpty());
     }
 
@@ -90,8 +70,7 @@ class MapResultSetProcessorPostgresIT {
                 jdbcTemplate.query(
                         """
                 select s.id, s.first_name, s.last_name, s.patronymic, s.birthdate,
-                cursor(format('select * from subject s left join student_subject ss on s.id = ss.subject_id where ss.student_id = %s',
-                s.id)) as subject
+                cursor(select * from subject left join student_subject ss on subject.id = ss.subject_id where ss.student_id = s.id) as subject
                 from student s
                 """,
                         mapper.getRowMapper());
@@ -113,8 +92,7 @@ class MapResultSetProcessorPostgresIT {
                 jdbcTemplate.query(
                         """
                 select s.id, s.first_name, s.last_name, s.patronymic, s.birthdate,
-                cursor(format('select * from subject s left join student_subject ss on s.id = ss.subject_id where ss.student_id = %s',
-                s.id)) as subject
+                cursor(select * from subject left join student_subject ss on subject.id = ss.subject_id where ss.student_id = s.id) as subject
                 from student s
                 """,
                         mapper.getRowMapper());
@@ -199,11 +177,10 @@ class MapResultSetProcessorPostgresIT {
                 var statement =
                         connection.prepareStatement(
                                 """
-                select s.id, s.first_name, s.last_name, s.patronymic, s.birthdate,
-                cursor(format('select * from subject s left join student_subject ss on s.id = ss.subject_id where ss.student_id = %s',
-                s.id)) as subject
-                from student s
-                """)) {
+             select s.id, s.first_name, s.last_name, s.patronymic, s.birthdate,
+             cursor(select * from subject left join student_subject ss on subject.id = ss.subject_id where ss.student_id = s.id) as subject
+             from student s
+             """)) {
             statement.execute();
             var resultSet = statement.getResultSet();
 
@@ -222,11 +199,10 @@ class MapResultSetProcessorPostgresIT {
                 var statement =
                         connection.prepareStatement(
                                 """
-                select s.id, s.first_name, s.last_name, s.patronymic, s.birthdate,
-                cursor(format('select * from subject s left join student_subject ss on s.id = ss.subject_id where ss.student_id = %s',
-                s.id)) as subject
-                from student s
-                """)) {
+             select s.id, s.first_name, s.last_name, s.patronymic, s.birthdate,
+             cursor(select * from subject left join student_subject ss on subject.id = ss.subject_id where ss.student_id = s.id) as subject
+             from student s
+             """)) {
             statement.execute();
             var resultSet = statement.getResultSet();
 
@@ -244,12 +220,11 @@ class MapResultSetProcessorPostgresIT {
                 var statement =
                         connection.prepareStatement(
                                 """
-                select s.id, s.first_name, s.last_name, s.patronymic, s.birthdate,
-                cursor(format('select * from subject s left join student_subject ss on s.id = ss.subject_id where ss.student_id = %s',
-                s.id)) as subject
-                from student s
-                where id = 1
-                """)) {
+             select s.id, s.first_name, s.last_name, s.patronymic, s.birthdate,
+             cursor(select * from subject left join student_subject ss on subject.id = ss.subject_id where ss.student_id = s.id) as subject
+             from student s
+             where id = 1
+             """)) {
             statement.execute();
             var resultSet = statement.getResultSet();
 
@@ -267,12 +242,11 @@ class MapResultSetProcessorPostgresIT {
                 var statement =
                         connection.prepareStatement(
                                 """
-                select s.id, s.first_name, s.last_name, s.patronymic, s.birthdate,
-                cursor(format('select * from subject s left join student_subject ss on s.id = ss.subject_id where ss.student_id = %s',
-                s.id)) as subject
-                from student s
-                where id = 1
-                """)) {
+             select s.id, s.first_name, s.last_name, s.patronymic, s.birthdate,
+             cursor(select * from subject left join student_subject ss on subject.id = ss.subject_id where ss.student_id = s.id) as subject
+             from student s
+             where id = 1
+             """)) {
             statement.execute();
             var resultSet = statement.getResultSet();
 
@@ -290,10 +264,9 @@ class MapResultSetProcessorPostgresIT {
                 jdbcTemplate.query(
                         """
                 select s.id, s.first_name, s.last_name, s.patronymic, s.birthdate,
-                cursor('select s.id, s.name
-                ,cursor(''select * from teacher t left join teacher_subject ts on t.id = ts.teacher_id where ts.subject_id = '' || s.id::varchar(255)) as teachers
-                from subject s left join student_subject ss on s.id = ss.subject_id where ss.student_id = ' ||
-                s.id::varchar(255)) as subject
+                cursor(select subject.id, subject.name
+                ,cursor(select * from teacher t left join teacher_subject ts on t.id = ts.teacher_id where ts.subject_id = subject.id) as teachers
+                from subject left join student_subject ss on subject.id = ss.subject_id where ss.student_id = s.id) as subject
                 from student s
                 """,
                         mapper.getRowMapper());
@@ -314,10 +287,9 @@ class MapResultSetProcessorPostgresIT {
                 jdbcTemplate.queryForObject(
                         """
                 select s.id, s.first_name, s.last_name, s.patronymic, s.birthdate,
-                cursor('select s.id, s.name
-                ,cursor(''select * from teacher t left join teacher_subject ts on t.id = ts.teacher_id where ts.subject_id = '' || s.id::varchar(255)) as teachers
-                from subject s left join student_subject ss on s.id = ss.subject_id where ss.student_id = ' ||
-                s.id::varchar(255)) as subject
+                cursor(select subject.id, subject.name
+                ,cursor(select * from teacher t left join teacher_subject ts on t.id = ts.teacher_id where ts.subject_id = subject.id) as teachers
+                from subject left join student_subject ss on subject.id = ss.subject_id where ss.student_id = s.id) as subject
                 from student s
                 where s.id = 1
                 """,
@@ -339,13 +311,12 @@ class MapResultSetProcessorPostgresIT {
                 var statement =
                         connection.prepareStatement(
                                 """
-                select s.id, s.first_name, s.last_name, s.patronymic, s.birthdate,
-                cursor('select s.id, s.name
-                ,cursor(''select * from teacher t left join teacher_subject ts on t.id = ts.teacher_id where ts.subject_id = '' || s.id::varchar(255)) as teachers
-                from subject s left join student_subject ss on s.id = ss.subject_id where ss.student_id = ' ||
-                s.id::varchar(255)) as subject
-                from student s
-                """)) {
+            select s.id, s.first_name, s.last_name, s.patronymic, s.birthdate,
+            cursor(select subject.id, subject.name
+            ,cursor(select * from teacher t left join teacher_subject ts on t.id = ts.teacher_id where ts.subject_id = subject.id) as teachers
+            from subject left join student_subject ss on subject.id = ss.subject_id where ss.student_id = s.id) as subject
+            from student s
+            """)) {
             statement.execute();
             var resultSet = statement.getResultSet();
 
@@ -369,14 +340,13 @@ class MapResultSetProcessorPostgresIT {
                 var statement =
                         connection.prepareStatement(
                                 """
-                select s.id, s.first_name, s.last_name, s.patronymic, s.birthdate,
-                cursor('select s.id, s.name
-                ,cursor(''select * from teacher t left join teacher_subject ts on t.id = ts.teacher_id where ts.subject_id = '' || s.id::varchar(255)) as teachers
-                from subject s left join student_subject ss on s.id = ss.subject_id where ss.student_id = ' ||
-                s.id::varchar(255)) as subject
-                from student s
-                where s.id = 1
-                """)) {
+             select s.id, s.first_name, s.last_name, s.patronymic, s.birthdate,
+             cursor(select subject.id, subject.name
+             ,cursor(select * from teacher t left join teacher_subject ts on t.id = ts.teacher_id where ts.subject_id = subject.id) as teachers
+             from subject left join student_subject ss on subject.id = ss.subject_id where ss.student_id = s.id) as subject
+             from student s
+             where s.id = 1
+             """)) {
             statement.execute();
             var resultSet = statement.getResultSet();
 
@@ -398,10 +368,9 @@ class MapResultSetProcessorPostgresIT {
                 jdbcTemplate.query(
                         """
                 select s.id, s.first_name, s.last_name, s.patronymic, s.birthdate,
-                cursor('select s.id, s.name
-                ,cursor(''select * from teacher t left join teacher_subject ts on t.id = ts.teacher_id where ts.subject_id = '' || s.id::varchar(255)) as teachers
-                from subject s left join student_subject ss on s.id = ss.subject_id where ss.student_id = ' ||
-                s.id::varchar(255)) as subject
+                cursor(select subject.id, subject.name
+                ,cursor(select * from teacher t left join teacher_subject ts on t.id = ts.teacher_id where ts.subject_id = subject.id) as teachers
+                from subject left join student_subject ss on subject.id = ss.subject_id where ss.student_id = s.id) as subject
                 from student s
                 """,
                         mapper.getRowMapper());
@@ -422,10 +391,9 @@ class MapResultSetProcessorPostgresIT {
                 jdbcTemplate.queryForObject(
                         """
                 select s.id, s.first_name, s.last_name, s.patronymic, s.birthdate,
-                cursor('select s.id, s.name
-                ,cursor(''select * from teacher t left join teacher_subject ts on t.id = ts.teacher_id where ts.subject_id = '' || s.id::varchar(255)) as teachers
-                from subject s left join student_subject ss on s.id = ss.subject_id where ss.student_id = ' ||
-                s.id::varchar(255)) as subject
+                cursor(select subject.id, subject.name
+                ,cursor(select * from teacher t left join teacher_subject ts on t.id = ts.teacher_id where ts.subject_id = subject.id) as teachers
+                from subject left join student_subject ss on subject.id = ss.subject_id where ss.student_id = s.id) as subject
                 from student s
                 where s.id = 1
                 """,
@@ -447,13 +415,12 @@ class MapResultSetProcessorPostgresIT {
                 var statement =
                         connection.prepareStatement(
                                 """
-                select s.id, s.first_name, s.last_name, s.patronymic, s.birthdate,
-                cursor('select s.id, s.name
-                ,cursor(''select * from teacher t left join teacher_subject ts on t.id = ts.teacher_id where ts.subject_id = '' || s.id::varchar(255)) as teachers
-                from subject s left join student_subject ss on s.id = ss.subject_id where ss.student_id = ' ||
-                s.id::varchar(255)) as subject
-                from student s
-                """)) {
+             select s.id, s.first_name, s.last_name, s.patronymic, s.birthdate,
+             cursor(select subject.id, subject.name
+             ,cursor(select * from teacher t left join teacher_subject ts on t.id = ts.teacher_id where ts.subject_id = subject.id) as teachers
+             from subject left join student_subject ss on subject.id = ss.subject_id where ss.student_id = s.id) as subject
+             from student s
+             """)) {
             statement.execute();
             var resultSet = statement.getResultSet();
 
@@ -477,14 +444,13 @@ class MapResultSetProcessorPostgresIT {
                 var statement =
                         connection.prepareStatement(
                                 """
-                select s.id, s.first_name, s.last_name, s.patronymic, s.birthdate,
-                cursor('select s.id, s.name
-                ,cursor(''select * from teacher t left join teacher_subject ts on t.id = ts.teacher_id where ts.subject_id = '' || s.id::varchar(255)) as teachers
-                from subject s left join student_subject ss on s.id = ss.subject_id where ss.student_id = ' ||
-                s.id::varchar(255)) as subject
-                from student s
-                where s.id = 1
-                """)) {
+             select s.id, s.first_name, s.last_name, s.patronymic, s.birthdate,
+             cursor(select subject.id, subject.name
+             ,cursor(select * from teacher t left join teacher_subject ts on t.id = ts.teacher_id where ts.subject_id = subject.id) as teachers
+             from subject left join student_subject ss on subject.id = ss.subject_id where ss.student_id = s.id) as subject
+             from student s
+             where s.id = 1
+             """)) {
             statement.execute();
             var resultSet = statement.getResultSet();
 

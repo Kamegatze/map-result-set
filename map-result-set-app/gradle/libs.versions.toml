@@ -2,7 +2,7 @@
 # https://docs.gradle.org/current/userguide/platforms.html#sub::toml-dependencies-format
 
 [versions]
-spring-jdbc-version = "5.3.39"
+spring-jdbc-version = "6.2.11"
 javapoet-version = "0.7.0"
 
 
