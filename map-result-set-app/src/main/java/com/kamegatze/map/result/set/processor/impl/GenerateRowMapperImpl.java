@@ -5,6 +5,7 @@ import com.kamegatze.map.result.set.processor.ClassTree;
 import com.kamegatze.map.result.set.processor.ClassTreeService;
 import com.kamegatze.map.result.set.processor.GenerateRowMapper;
 import com.kamegatze.map.result.set.processor.utilities.CodeUtility;
+import com.kamegatze.map.result.set.processor.utilities.GeneralConstantUtility;
 import com.palantir.javapoet.ClassName;
 import com.palantir.javapoet.CodeBlock;
 import com.palantir.javapoet.ParameterizedTypeName;
@@ -26,17 +27,18 @@ public record GenerateRowMapperImpl(
     public CodeBlock generate(ClassTree root) {
         var builder = CodeBlock.builder();
         var stack = new ArrayDeque<>(root.children());
-        var rootResultSet = "rs";
 
         builder.add(
                 "$T %s = (%s, rowNum) -> {"
-                                .formatted(CodeUtility.ROOT_VARIABLE_ROW_MAPPER, rootResultSet)
+                                .formatted(
+                                        GeneralConstantUtility.ROOT_VARIABLE_ROW_MAPPER,
+                                        GeneralConstantUtility.VARIABLE_RESULT_SET_ONE_ENSURE)
                         + "\n",
                 ParameterizedTypeName.get(
                         ClassName.get(RowMapper.class), TypeName.get(root.typeMirror())));
         builder.indent();
 
-        builder.add(createFields(root, rootResultSet));
+        builder.add(createFields(root, GeneralConstantUtility.VARIABLE_RESULT_SET_ONE_ENSURE));
 
         while (!stack.isEmpty()) {
             if (stack.getLast().children().isEmpty()) {
@@ -45,23 +47,28 @@ public record GenerateRowMapperImpl(
                 var typeMirror =
                         CodeUtility.getOneGeneric(Objects.requireNonNull(item).typeMirror())
                                 .orElse(item.typeMirror());
-                var nameResultSet = "rs1";
 
                 builder.add(
                         "$T %s = (%s, rowNum1) -> {"
                                         .formatted(
-                                                item.name() + item.parent().uuid(), nameResultSet)
+                                                item.name() + item.parent().uuid(),
+                                                GeneralConstantUtility
+                                                        .VARIABLE_RESULT_SET_TWO_ENSURE)
                                 + "\n",
                         ParameterizedTypeName.get(
                                 ClassName.get(RowMapper.class), TypeName.get(typeMirror)));
                 builder.indent();
 
-                builder.add(createFields(item, nameResultSet));
+                builder.add(
+                        createFields(item, GeneralConstantUtility.VARIABLE_RESULT_SET_TWO_ENSURE));
 
-                builder.add(createNewObject(item, nameResultSet));
+                builder.add(
+                        createNewObject(
+                                item, GeneralConstantUtility.VARIABLE_RESULT_SET_TWO_ENSURE));
 
                 builder.addStatement(
-                        CodeUtility.RETURN_TEMPLATE.formatted(item.name() + item.uuid()));
+                        GeneralConstantUtility.RETURN_TEMPLATE.formatted(
+                                item.name() + item.uuid()));
                 builder.unindent();
                 builder.add("};\n");
 
@@ -71,9 +78,10 @@ public record GenerateRowMapperImpl(
             }
         }
 
-        builder.add(createNewObject(root, rootResultSet));
+        builder.add(createNewObject(root, GeneralConstantUtility.VARIABLE_RESULT_SET_ONE_ENSURE));
 
-        builder.addStatement(CodeUtility.RETURN_TEMPLATE.formatted(root.name() + root.uuid()));
+        builder.addStatement(
+                GeneralConstantUtility.RETURN_TEMPLATE.formatted(root.name() + root.uuid()));
         builder.unindent();
         builder.add("};\n");
         return builder.build();
@@ -128,7 +136,7 @@ public record GenerateRowMapperImpl(
                                         template.formatted(
                                                 item.name() + item.uuid(),
                                                 CodeUtility.generateSetMethodName(it.toString()),
-                                                CodeUtility.EXTRACT_ROW_MAPPER,
+                                                GeneralConstantUtility.EXTRACT_ROW_MAPPER,
                                                 it.getSimpleName().toString() + item.uuid(),
                                                 resultSetName),
                                         ResultSet.class,
@@ -139,7 +147,7 @@ public record GenerateRowMapperImpl(
                                     template.formatted(
                                             item.name() + item.uuid(),
                                             CodeUtility.generateSetMethodName(it.toString()),
-                                            CodeUtility.EXTRACT_ROW_MAPPER_ONE,
+                                            GeneralConstantUtility.EXTRACT_ROW_MAPPER_ONE,
                                             it.getSimpleName().toString() + item.uuid(),
                                             resultSetName),
                                     ResultSet.class,
@@ -178,7 +186,7 @@ public record GenerateRowMapperImpl(
                             if (genericOption.isPresent()) {
                                 builder.add(
                                         templateExtract.formatted(
-                                                        CodeUtility.EXTRACT_ROW_MAPPER,
+                                                        GeneralConstantUtility.EXTRACT_ROW_MAPPER,
                                                         item.fields()
                                                                         .get(index)
                                                                         .getSimpleName()
@@ -193,7 +201,7 @@ public record GenerateRowMapperImpl(
                             }
                             builder.add(
                                     templateExtract.formatted(
-                                                    CodeUtility.EXTRACT_ROW_MAPPER_ONE,
+                                                    GeneralConstantUtility.EXTRACT_ROW_MAPPER_ONE,
                                                     item.fields()
                                                                     .get(index)
                                                                     .getSimpleName()

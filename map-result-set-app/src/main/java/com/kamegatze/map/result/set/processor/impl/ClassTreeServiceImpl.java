@@ -4,6 +4,7 @@ import com.kamegatze.map.result.set.Cursor;
 import com.kamegatze.map.result.set.processor.ClassTree;
 import com.kamegatze.map.result.set.processor.ClassTreeService;
 import com.kamegatze.map.result.set.processor.utilities.CodeUtility;
+import com.kamegatze.map.result.set.processor.utilities.GeneralConstantUtility;
 import java.util.*;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.VariableElement;
@@ -17,7 +18,12 @@ public record ClassTreeServiceImpl(ProcessingEnvironment processingEnvironment)
         var uuidRoot = UUID.randomUUID().toString().replace("-", "");
         var root =
                 new ClassTreeSimple(
-                        CodeUtility.ROOT_VARIABLE_ROW_MAPPER, uuidRoot, rootType, null, new ArrayList<>(), variableElements);
+                        GeneralConstantUtility.ROOT_VARIABLE_ROW_MAPPER,
+                        uuidRoot,
+                        rootType,
+                        null,
+                        new ArrayList<>(),
+                        variableElements);
 
         var queue = new ArrayDeque<ClassTreeSimple>();
         queue.add(root);

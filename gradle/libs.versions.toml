@@ -39,6 +39,8 @@ flyway-mysql = {module = "org.flywaydb:flyway-mysql", version.ref = "flyway-vers
 
 [bundles]
 flyway = ["flyway-core", "flyway-postgresql", "flyway-oracle", "flyway-mysql"]
+testcontainer = ["testcontainer", "testcontainer-jupiter", "testcontainer-oracle-free", "testcontainer-mysql", "testcontainer-postgresql"]
+drivers = ["postgresql", "ojdbc", "mysql"]
 
 
 [plugins]

@@ -14,13 +14,6 @@ import javax.lang.model.util.ElementFilter;
 
 public final class CodeUtility {
 
-    public static final String EXTRACT_ROW_MAPPER = "extractRowMapper";
-    public static final String EXTRACT_ROW_MAPPER_ONE = "extractRowMapperOne";
-
-    public static final String ROOT_VARIABLE_ROW_MAPPER = "root";
-
-    public static final String RETURN_TEMPLATE = "return %s";
-
     private CodeUtility() {}
 
     public static Optional<TypeMirror> getOneGeneric(TypeMirror typeMirror) {

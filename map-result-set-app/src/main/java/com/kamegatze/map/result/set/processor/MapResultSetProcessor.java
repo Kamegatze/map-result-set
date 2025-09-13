@@ -1,6 +1,9 @@
 package com.kamegatze.map.result.set.processor;
 
+import com.kamegatze.map.result.set.processor.impl.ClassTreeServiceImpl;
 import com.kamegatze.map.result.set.processor.impl.GenerateImplementationMapResultSetProcessor;
+import com.kamegatze.map.result.set.processor.impl.GenerateImplementationMapResultSetServiceImpl;
+import com.kamegatze.map.result.set.processor.impl.GenerateRowMapperImpl;
 import java.util.Set;
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
@@ -15,6 +18,13 @@ public final class MapResultSetProcessor extends AbstractProcessor {
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-        return new GenerateImplementationMapResultSetProcessor(processingEnv, roundEnv).processor();
+        var classTreeService = new ClassTreeServiceImpl(processingEnv);
+        return new GenerateImplementationMapResultSetProcessor(
+                        new GenerateImplementationMapResultSetServiceImpl(
+                                processingEnv,
+                                new GenerateRowMapperImpl(processingEnv, classTreeService),
+                                classTreeService),
+                        roundEnv)
+                .processor();
     }
 }

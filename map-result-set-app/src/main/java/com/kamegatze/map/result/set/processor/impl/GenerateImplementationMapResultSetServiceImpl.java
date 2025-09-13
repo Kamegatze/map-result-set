@@ -7,6 +7,7 @@ import com.kamegatze.map.result.set.processor.exception.ExtractResultSetExceptio
 import com.kamegatze.map.result.set.processor.exception.MoreThenOneItemException;
 import com.kamegatze.map.result.set.processor.exception.WriteJavaFileException;
 import com.kamegatze.map.result.set.processor.utilities.CodeUtility;
+import com.kamegatze.map.result.set.processor.utilities.GeneralConstantUtility;
 import com.palantir.javapoet.ClassName;
 import com.palantir.javapoet.CodeBlock;
 import com.palantir.javapoet.JavaFile;
@@ -43,7 +44,11 @@ public record GenerateImplementationMapResultSetServiceImpl(
                         .toList();
 
         var typeSpec =
-                TypeSpec.classBuilder("%s%s".formatted(element.getSimpleName().toString(), "Impl"))
+                TypeSpec.classBuilder(
+                                "%s%s"
+                                        .formatted(
+                                                element.getSimpleName().toString(),
+                                                GeneralConstantUtility.POSTFIX_IMPLEMENT_INTERFACE))
                         .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
                         .addSuperinterface(element.asType())
                         .addMethods(methodSpecs)
@@ -67,14 +72,14 @@ public record GenerateImplementationMapResultSetServiceImpl(
 
     private MethodSpec createExtractMethod() {
         var generic = TypeVariableName.get("T");
-        return MethodSpec.methodBuilder(CodeUtility.EXTRACT_ROW_MAPPER)
+        return MethodSpec.methodBuilder(GeneralConstantUtility.EXTRACT_ROW_MAPPER)
                 .addModifiers(Modifier.PRIVATE)
                 .addTypeVariable(generic)
                 .addException(SQLException.class)
                 .addParameter(
                         ParameterizedTypeName.get(ClassName.get(RowMapper.class), generic),
-                        "rowMapper")
-                .addParameter(ResultSet.class, "rs")
+                        GeneralConstantUtility.EXTRACT_ARG_ROW_MAPPER)
+                .addParameter(ResultSet.class, GeneralConstantUtility.EXTRACT_ARG_RESULT_SET)
                 .addStatement(
                         "var list = new $T()",
                         ParameterizedTypeName.get(ClassName.get(ArrayList.class), generic))
@@ -88,16 +93,17 @@ public record GenerateImplementationMapResultSetServiceImpl(
 
     private MethodSpec createExtractMethodOne() {
         var generic = TypeVariableName.get("T");
-        return MethodSpec.methodBuilder(CodeUtility.EXTRACT_ROW_MAPPER_ONE)
+        return MethodSpec.methodBuilder(GeneralConstantUtility.EXTRACT_ROW_MAPPER_ONE)
                 .addModifiers(Modifier.PRIVATE)
                 .addTypeVariable(generic)
                 .addException(SQLException.class)
                 .addParameter(
                         ParameterizedTypeName.get(ClassName.get(RowMapper.class), generic),
-                        "rowMapper")
-                .addParameter(ResultSet.class, "rs")
+                        GeneralConstantUtility.EXTRACT_ARG_ROW_MAPPER)
+                .addParameter(ResultSet.class, GeneralConstantUtility.EXTRACT_ARG_RESULT_SET)
                 .addStatement(
-                        "var list = %s(rowMapper, rs)".formatted(CodeUtility.EXTRACT_ROW_MAPPER))
+                        "var list = %s(rowMapper, rs)"
+                                .formatted(GeneralConstantUtility.EXTRACT_ROW_MAPPER))
                 .beginControlFlow("if(list.isEmpty())")
                 .addStatement("return null")
                 .endControlFlow()
@@ -121,11 +127,12 @@ public record GenerateImplementationMapResultSetServiceImpl(
             var argument =
                     executableElement.getParameters().stream().map(ParameterSpec::get).toList();
 
-            var methodBuilder = MethodSpec.methodBuilder(element.getSimpleName().toString())
-                    .addModifiers(Modifier.PUBLIC)
-                    .addAnnotation(Override.class)
-                    .addParameters(argument)
-                    .returns(returnType);
+            var methodBuilder =
+                    MethodSpec.methodBuilder(element.getSimpleName().toString())
+                            .addModifiers(Modifier.PUBLIC)
+                            .addAnnotation(Override.class)
+                            .addParameters(argument)
+                            .returns(returnType);
 
             codeBlocks.forEach(methodBuilder::addCode);
 
@@ -190,8 +197,8 @@ public record GenerateImplementationMapResultSetServiceImpl(
                 generateRowMapper.generate(root),
                 CodeBlock.builder()
                         .addStatement(
-                                CodeUtility.RETURN_TEMPLATE.formatted(
-                                        CodeUtility.ROOT_VARIABLE_ROW_MAPPER))
+                                GeneralConstantUtility.RETURN_TEMPLATE.formatted(
+                                        GeneralConstantUtility.ROOT_VARIABLE_ROW_MAPPER))
                         .build());
     }
 
@@ -204,8 +211,8 @@ public record GenerateImplementationMapResultSetServiceImpl(
 
         var methodNameExtract =
                 genericOptional.isPresent()
-                        ? CodeUtility.EXTRACT_ROW_MAPPER
-                        : CodeUtility.EXTRACT_ROW_MAPPER_ONE;
+                        ? GeneralConstantUtility.EXTRACT_ROW_MAPPER
+                        : GeneralConstantUtility.EXTRACT_ROW_MAPPER_ONE;
 
         var root = classTreeService.createTree(fieldsName, genericOptional.orElse(typeMirror));
         return List.of(
@@ -216,7 +223,7 @@ public record GenerateImplementationMapResultSetServiceImpl(
                                 "return %s(%s, %s)"
                                         .formatted(
                                                 methodNameExtract,
-                                                CodeUtility.ROOT_VARIABLE_ROW_MAPPER,
+                                                GeneralConstantUtility.ROOT_VARIABLE_ROW_MAPPER,
                                                 nameVariableResultSet))
                         .endControlFlow()
                         .beginControlFlow("catch($T e)", SQLException.class)

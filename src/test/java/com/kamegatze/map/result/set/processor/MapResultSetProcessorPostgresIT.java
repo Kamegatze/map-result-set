@@ -55,9 +55,11 @@ class MapResultSetProcessorPostgresIT {
 
         dataSource = datasource;
 
-        var flyway = Flyway.configure()
-                .locations("classpath:/db/migration/postgres")
-                .dataSource(datasource).load();
+        var flyway =
+                Flyway.configure()
+                        .locations("classpath:/db/migration/postgres")
+                        .dataSource(datasource)
+                        .load();
 
         flyway.migrate();
 

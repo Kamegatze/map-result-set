@@ -48,18 +48,10 @@ dependencies {
     testImplementation(platform(libs.junit.bom))
     testImplementation(libs.junit.jupiter)
 
-    testImplementation(libs.testcontainer)
-    testImplementation(libs.testcontainer.jupiter)
-    testImplementation(libs.testcontainer.postgresql)
-    testImplementation(libs.testcontainer.oracle.free)
-    testImplementation(libs.testcontainer.mysql)
-
     testImplementation(libs.apache.commons.compress)
 
-    testImplementation(libs.postgresql)
-    testImplementation(libs.ojdbc)
-    testImplementation(libs.mysql)
-
+    testImplementation(libs.bundles.testcontainer)
+    testImplementation(libs.bundles.drivers)
     testImplementation(libs.bundles.flyway)
 
     testRuntimeOnly(libs.junit.platform.launcher)
