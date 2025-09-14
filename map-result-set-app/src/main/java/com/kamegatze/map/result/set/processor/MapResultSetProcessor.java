@@ -3,7 +3,7 @@ package com.kamegatze.map.result.set.processor;
 import com.kamegatze.map.result.set.processor.impl.ClassTreeServiceImpl;
 import com.kamegatze.map.result.set.processor.impl.GenerateImplementationMapResultSetProcessor;
 import com.kamegatze.map.result.set.processor.impl.GenerateImplementationMapResultSetServiceImpl;
-import com.kamegatze.map.result.set.processor.impl.GenerateRowMapperImpl;
+import com.kamegatze.map.result.set.processor.impl.GenerateResultSetMapperImpl;
 import java.util.Set;
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
@@ -22,7 +22,7 @@ public final class MapResultSetProcessor extends AbstractProcessor {
         return new GenerateImplementationMapResultSetProcessor(
                         new GenerateImplementationMapResultSetServiceImpl(
                                 processingEnv,
-                                new GenerateRowMapperImpl(processingEnv, classTreeService),
+                                new GenerateResultSetMapperImpl(processingEnv, classTreeService),
                                 classTreeService),
                         roundEnv)
                 .processor();

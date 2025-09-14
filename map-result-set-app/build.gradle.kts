@@ -26,7 +26,6 @@ repositories {
 }
 
 dependencies {
-    implementation(libs.spring.jdbc)
     api(libs.javapoet)
     api(libs.slf4j.api)
 }

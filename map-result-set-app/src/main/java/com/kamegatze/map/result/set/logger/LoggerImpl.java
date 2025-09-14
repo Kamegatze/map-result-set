@@ -1,8 +1,7 @@
 package com.kamegatze.map.result.set.logger;
 
-import java.util.Objects;
-
 import com.kamegatze.map.result.set.processor.utilities.GeneralConstantUtility;
+import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.Marker;
 import org.slf4j.event.Level;
@@ -13,7 +12,11 @@ public final class LoggerImpl implements Logger {
     private final Logger log;
 
     public LoggerImpl(Logger log) {
-        this.level = Level.valueOf(System.getProperty(GeneralConstantUtility.LOGGING_LEVEL_KEY, Level.WARN.name()).toUpperCase());
+        this.level =
+                Level.valueOf(
+                        System.getProperty(
+                                        GeneralConstantUtility.LOGGING_LEVEL_KEY, Level.WARN.name())
+                                .toUpperCase());
         this.log = Objects.requireNonNull(log);
     }
 

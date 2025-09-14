@@ -3,7 +3,8 @@ package com.kamegatze.map.result.set.processor.impl;
 import com.kamegatze.map.result.set.Cursor;
 import com.kamegatze.map.result.set.processor.ClassTree;
 import com.kamegatze.map.result.set.processor.ClassTreeService;
-import com.kamegatze.map.result.set.processor.GenerateRowMapper;
+import com.kamegatze.map.result.set.processor.GenerateResultSetMapper;
+import com.kamegatze.map.result.set.processor.ResultSetMapper;
 import com.kamegatze.map.result.set.processor.utilities.CodeUtility;
 import com.kamegatze.map.result.set.processor.utilities.GeneralConstantUtility;
 import com.palantir.javapoet.ClassName;
@@ -17,11 +18,10 @@ import java.util.stream.IntStream;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.type.TypeMirror;
-import org.springframework.jdbc.core.RowMapper;
 
-public record GenerateRowMapperImpl(
+public record GenerateResultSetMapperImpl(
         ProcessingEnvironment processingEnvironment, ClassTreeService classTreeService)
-        implements GenerateRowMapper {
+        implements GenerateResultSetMapper {
 
     @Override
     public CodeBlock generate(ClassTree root) {
@@ -36,7 +36,7 @@ public record GenerateRowMapperImpl(
                         + GeneralConstantUtility.VARIABLE_RESULT_SET_ONE_ENSURE
                         + " , rowNum) -> {\n",
                 ParameterizedTypeName.get(
-                        ClassName.get(RowMapper.class), TypeName.get(root.typeMirror())));
+                        ClassName.get(ResultSetMapper.class), TypeName.get(root.typeMirror())));
         builder.indent();
 
         builder.add(createFields(root, GeneralConstantUtility.VARIABLE_RESULT_SET_ONE_ENSURE));
@@ -58,7 +58,7 @@ public record GenerateRowMapperImpl(
                                 + GeneralConstantUtility.VARIABLE_RESULT_SET_TWO_ENSURE
                                 + " , rowNum1) -> {\n",
                         ParameterizedTypeName.get(
-                                ClassName.get(RowMapper.class), TypeName.get(typeMirror)));
+                                ClassName.get(ResultSetMapper.class), TypeName.get(typeMirror)));
                 builder.indent();
 
                 builder.add(
@@ -150,7 +150,9 @@ public record GenerateRowMapperImpl(
                                 builder.addStatement(
                                         /*template is "%s.%s(%s(%s, ($T) %s.getObject($S)))"*/
                                         prefixBuilder
-                                                .append(GeneralConstantUtility.EXTRACT_ROW_MAPPER)
+                                                .append(
+                                                        GeneralConstantUtility
+                                                                .EXTRACT_RESULT_SET_MAPPER)
                                                 .append("(")
                                                 .append(it.getSimpleName().toString())
                                                 .append(item.uuid())
@@ -165,7 +167,9 @@ public record GenerateRowMapperImpl(
                             builder.addStatement(
                                     /*template is "%s.%s(%s(%s, ($T) %s.getObject($S)))"*/
                                     prefixBuilder
-                                            .append(GeneralConstantUtility.EXTRACT_ROW_MAPPER_ONE)
+                                            .append(
+                                                    GeneralConstantUtility
+                                                            .EXTRACT_RESULT_SET_MAPPER_ONE)
                                             .append("(")
                                             .append(it.getSimpleName().toString())
                                             .append(item.uuid())
@@ -212,14 +216,16 @@ public record GenerateRowMapperImpl(
                             if (genericOption.isPresent()) {
                                 builder.add(
                                         /*template is "%s(%s, ($T) %s.getObject($S))%s\n"*/
-                                        GeneralConstantUtility.EXTRACT_ROW_MAPPER + extractPostfix,
+                                        GeneralConstantUtility.EXTRACT_RESULT_SET_MAPPER
+                                                + extractPostfix,
                                         ResultSet.class,
                                         CodeUtility.getColumnName(item.fields().get(index)));
                                 return;
                             }
                             builder.add(
                                     /*template is "%s(%s, ($T) %s.getObject($S))%s\n"*/
-                                    GeneralConstantUtility.EXTRACT_ROW_MAPPER_ONE + extractPostfix,
+                                    GeneralConstantUtility.EXTRACT_RESULT_SET_MAPPER_ONE
+                                            + extractPostfix,
                                     ResultSet.class,
                                     CodeUtility.getColumnName(item.fields().get(index)));
                         });
