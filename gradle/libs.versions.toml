@@ -11,6 +11,7 @@ flyway-version = "11.10.1"
 oracle-version = "23.9.0.25.07"
 mysql-version = "9.4.0"
 apache-commons-compress-version = "1.28.0"
+logback-classic-version = "1.5.18"
 
 [libraries]
 spring-jdbc = {module = "org.springframework:spring-jdbc", version.ref = "spring-jdbc-version"}
@@ -36,6 +37,8 @@ flyway-core = {module = "org.flywaydb:flyway-core", version.ref = "flyway-versio
 flyway-postgresql = {module = "org.flywaydb:flyway-database-postgresql", version.ref = "flyway-version"}
 flyway-oracle = {module = "org.flywaydb:flyway-database-oracle", version.ref = "flyway-version"}
 flyway-mysql = {module = "org.flywaydb:flyway-mysql", version.ref = "flyway-version"}
+
+logback-classic = {module = "ch.qos.logback:logback-classic", version.ref = "logback-classic-version"}
 
 [bundles]
 flyway = ["flyway-core", "flyway-postgresql", "flyway-oracle", "flyway-mysql"]

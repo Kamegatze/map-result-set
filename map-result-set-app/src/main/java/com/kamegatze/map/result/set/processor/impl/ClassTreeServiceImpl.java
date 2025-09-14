@@ -21,9 +21,9 @@ public record ClassTreeServiceImpl(ProcessingEnvironment processingEnvironment)
                         GeneralConstantUtility.ROOT_VARIABLE_ROW_MAPPER,
                         uuidRoot,
                         rootType,
+                        variableElements,
                         null,
-                        new ArrayList<>(),
-                        variableElements);
+                        new ArrayList<>());
 
         var queue = new ArrayDeque<ClassTreeSimple>();
         queue.add(root);
@@ -46,9 +46,9 @@ public record ClassTreeServiceImpl(ProcessingEnvironment processingEnvironment)
                                                 it.toString(),
                                                 uuidItem,
                                                 it.asType(),
+                                                fields,
                                                 item,
-                                                new ArrayList<>(),
-                                                fields);
+                                                new ArrayList<>());
                                 item.children().add(child);
                                 queue.add(child);
                             });

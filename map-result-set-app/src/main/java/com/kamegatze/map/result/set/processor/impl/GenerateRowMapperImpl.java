@@ -29,11 +29,12 @@ public record GenerateRowMapperImpl(
         var stack = new ArrayDeque<>(root.children());
 
         builder.add(
-                "$T %s = (%s, rowNum) -> {"
-                                .formatted(
-                                        GeneralConstantUtility.ROOT_VARIABLE_ROW_MAPPER,
-                                        GeneralConstantUtility.VARIABLE_RESULT_SET_ONE_ENSURE)
-                        + "\n",
+                /*template is "$T %s = (%s, rowNum) ->{\n"*/
+                "$T "
+                        + GeneralConstantUtility.ROOT_VARIABLE_ROW_MAPPER
+                        + " = ("
+                        + GeneralConstantUtility.VARIABLE_RESULT_SET_ONE_ENSURE
+                        + " , rowNum) -> {\n",
                 ParameterizedTypeName.get(
                         ClassName.get(RowMapper.class), TypeName.get(root.typeMirror())));
         builder.indent();
@@ -49,12 +50,13 @@ public record GenerateRowMapperImpl(
                                 .orElse(item.typeMirror());
 
                 builder.add(
-                        "$T %s = (%s, rowNum1) -> {"
-                                        .formatted(
-                                                item.name() + item.parent().uuid(),
-                                                GeneralConstantUtility
-                                                        .VARIABLE_RESULT_SET_TWO_ENSURE)
-                                + "\n",
+                        /*template is $T %s = (%s, rowNum) ->{\n*/
+                        "$T "
+                                + item.name()
+                                + item.parent().uuid()
+                                + " = ("
+                                + GeneralConstantUtility.VARIABLE_RESULT_SET_TWO_ENSURE
+                                + " , rowNum1) -> {\n",
                         ParameterizedTypeName.get(
                                 ClassName.get(RowMapper.class), TypeName.get(typeMirror)));
                 builder.indent();
@@ -67,8 +69,7 @@ public record GenerateRowMapperImpl(
                                 item, GeneralConstantUtility.VARIABLE_RESULT_SET_TWO_ENSURE));
 
                 builder.addStatement(
-                        GeneralConstantUtility.RETURN_TEMPLATE.formatted(
-                                item.name() + item.uuid()));
+                        GeneralConstantUtility.RETURN_TEMPLATE + item.name() + item.uuid());
                 builder.unindent();
                 builder.add("};\n");
 
@@ -80,8 +81,7 @@ public record GenerateRowMapperImpl(
 
         builder.add(createNewObject(root, GeneralConstantUtility.VARIABLE_RESULT_SET_ONE_ENSURE));
 
-        builder.addStatement(
-                GeneralConstantUtility.RETURN_TEMPLATE.formatted(root.name() + root.uuid()));
+        builder.addStatement(GeneralConstantUtility.RETURN_TEMPLATE + root.name() + root.uuid());
         builder.unindent();
         builder.add("};\n");
         return builder.build();
@@ -94,8 +94,13 @@ public record GenerateRowMapperImpl(
                 .forEach(
                         it ->
                                 builder.addStatement(
-                                        "var %s = %s.getObject($S, $T.class)"
-                                                .formatted(it + item.uuid(), nameResultSet),
+                                        /*template is "var %s = %s.getObject($S, $T.class)"*/
+                                        "var "
+                                                + it
+                                                + item.uuid()
+                                                + " = "
+                                                + nameResultSet
+                                                + ".getObject($S, $T.class)",
                                         CodeUtility.getColumnName(it),
                                         TypeName.get(it.asType())));
         return builder.build();
@@ -113,43 +118,62 @@ public record GenerateRowMapperImpl(
     private CodeBlock createNewClass(ClassTree item, TypeMirror typeMirror, String resultSetName) {
         var builder = CodeBlock.builder();
         builder.addStatement(
-                "var %s = new $T()".formatted(item.name() + item.uuid()), TypeName.get(typeMirror));
+                "var " + item.name() + item.uuid() + " = new $T()", TypeName.get(typeMirror));
         item.fields()
                 .forEach(
                         it -> {
                             if (Objects.isNull(it.getAnnotation(Cursor.class))) {
                                 builder.addStatement(
-                                        "%s.%s(%s)"
-                                                .formatted(
-                                                        item.name() + item.uuid(),
-                                                        CodeUtility.generateSetMethodName(
-                                                                it.toString()),
-                                                        it.getSimpleName().toString()
-                                                                + item.uuid()));
+                                        /*template is "%s.%s(%s)"*/
+                                        item.name()
+                                                + item.uuid()
+                                                + "."
+                                                + CodeUtility.generateSetMethodName(it.toString())
+                                                + "("
+                                                + it.getSimpleName().toString()
+                                                + item.uuid()
+                                                + ")");
                                 return;
                             }
                             var genericOption = CodeUtility.getOneGeneric(it.asType());
-                            var template = "%s.%s(%s(%s, ($T) %s.getObject($S)))";
+                            var prefixBuilder =
+                                    new StringBuilder()
+                                            .append(item.name())
+                                            .append(item.uuid())
+                                            .append(".")
+                                            .append(
+                                                    CodeUtility.generateSetMethodName(
+                                                            it.toString()))
+                                            .append("(");
 
                             if (genericOption.isPresent()) {
                                 builder.addStatement(
-                                        template.formatted(
-                                                item.name() + item.uuid(),
-                                                CodeUtility.generateSetMethodName(it.toString()),
-                                                GeneralConstantUtility.EXTRACT_ROW_MAPPER,
-                                                it.getSimpleName().toString() + item.uuid(),
-                                                resultSetName),
+                                        /*template is "%s.%s(%s(%s, ($T) %s.getObject($S)))"*/
+                                        prefixBuilder
+                                                .append(GeneralConstantUtility.EXTRACT_ROW_MAPPER)
+                                                .append("(")
+                                                .append(it.getSimpleName().toString())
+                                                .append(item.uuid())
+                                                .append(",($T) ")
+                                                .append(resultSetName)
+                                                .append(".getObject($S)))")
+                                                .toString(),
                                         ResultSet.class,
                                         CodeUtility.getColumnName(it));
                                 return;
                             }
                             builder.addStatement(
-                                    template.formatted(
-                                            item.name() + item.uuid(),
-                                            CodeUtility.generateSetMethodName(it.toString()),
-                                            GeneralConstantUtility.EXTRACT_ROW_MAPPER_ONE,
-                                            it.getSimpleName().toString() + item.uuid(),
-                                            resultSetName),
+                                    /*template is "%s.%s(%s(%s, ($T) %s.getObject($S)))"*/
+                                    prefixBuilder
+                                            .append(GeneralConstantUtility.EXTRACT_ROW_MAPPER_ONE)
+                                            .append("(")
+                                            .append(it.getSimpleName().toString())
+                                            .append(item.uuid())
+                                            .append(",")
+                                            .append("($T) ")
+                                            .append(resultSetName)
+                                            .append(".getObject($S)))")
+                                            .toString(),
                                     ResultSet.class,
                                     CodeUtility.getColumnName(it));
                         });
@@ -158,58 +182,44 @@ public record GenerateRowMapperImpl(
 
     private CodeBlock createNewRecord(ClassTree item, TypeMirror typeMirror, String resultSetName) {
         var builder = CodeBlock.builder();
-        builder.add(
-                "var %s = new $T(".formatted(item.name() + item.uuid()) + "\n",
-                TypeName.get(typeMirror));
+        builder.add("var " + item.name() + item.uuid() + " = new $T(\n", TypeName.get(typeMirror));
         IntStream.range(0, item.fields().size())
                 .forEach(
                         index -> {
-                            var templateExtract = "%s(%s, ($T) %s.getObject($S))%s";
-                            var template = "%s%s";
                             var postfix = index == item.fields().size() - 1 ? ");" : ",";
+                            var extractPostfix =
+                                    "("
+                                            + item.fields().get(index).getSimpleName().toString()
+                                            + item.uuid()
+                                            + ", ($T) "
+                                            + resultSetName
+                                            + ".getObject($S))"
+                                            + postfix
+                                            + "\n";
+
                             var genericOption =
                                     CodeUtility.getOneGeneric(item.fields().get(index).asType());
 
                             if (Objects.isNull(
                                     item.fields().get(index).getAnnotation(Cursor.class))) {
                                 builder.add(
-                                        template.formatted(
-                                                        item.fields()
-                                                                        .get(index)
-                                                                        .getSimpleName()
-                                                                        .toString()
-                                                                + item.uuid(),
-                                                        postfix)
+                                        item.fields().get(index).getSimpleName().toString()
+                                                + item.uuid()
+                                                + postfix
                                                 + "\n");
                                 return;
                             }
                             if (genericOption.isPresent()) {
                                 builder.add(
-                                        templateExtract.formatted(
-                                                        GeneralConstantUtility.EXTRACT_ROW_MAPPER,
-                                                        item.fields()
-                                                                        .get(index)
-                                                                        .getSimpleName()
-                                                                        .toString()
-                                                                + item.uuid(),
-                                                        resultSetName,
-                                                        postfix)
-                                                + "\n",
+                                        /*template is "%s(%s, ($T) %s.getObject($S))%s\n"*/
+                                        GeneralConstantUtility.EXTRACT_ROW_MAPPER + extractPostfix,
                                         ResultSet.class,
                                         CodeUtility.getColumnName(item.fields().get(index)));
                                 return;
                             }
                             builder.add(
-                                    templateExtract.formatted(
-                                                    GeneralConstantUtility.EXTRACT_ROW_MAPPER_ONE,
-                                                    item.fields()
-                                                                    .get(index)
-                                                                    .getSimpleName()
-                                                                    .toString()
-                                                            + item.uuid(),
-                                                    resultSetName,
-                                                    postfix)
-                                            + "\n",
+                                    /*template is "%s(%s, ($T) %s.getObject($S))%s\n"*/
+                                    GeneralConstantUtility.EXTRACT_ROW_MAPPER_ONE + extractPostfix,
                                     ResultSet.class,
                                     CodeUtility.getColumnName(item.fields().get(index)));
                         });

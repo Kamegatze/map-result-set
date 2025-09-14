@@ -4,8 +4,9 @@
 [versions]
 spring-jdbc-version = "6.2.11"
 javapoet-version = "0.7.0"
-
+slf4j-api-version = "2.0.17"
 
 [libraries]
 spring-jdbc = {module = "org.springframework:spring-jdbc", version.ref = "spring-jdbc-version"}
 javapoet = {module = "com.palantir.javapoet:javapoet", version.ref = "javapoet-version"}
+slf4j-api = {module = "org.slf4j:slf4j-api", version.ref = "slf4j-api-version"}

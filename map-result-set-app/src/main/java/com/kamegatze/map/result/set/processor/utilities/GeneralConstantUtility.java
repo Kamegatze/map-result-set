@@ -8,7 +8,7 @@ public final class GeneralConstantUtility {
 
     public static final String ROOT_VARIABLE_ROW_MAPPER = "root";
 
-    public static final String RETURN_TEMPLATE = "return %s";
+    public static final String RETURN_TEMPLATE = "return ";
 
     public static final String EXTRACT_ARG_ROW_MAPPER = "rowMapper";
     public static final String EXTRACT_ARG_RESULT_SET = "rs";
@@ -17,4 +17,6 @@ public final class GeneralConstantUtility {
 
     public static final String VARIABLE_RESULT_SET_ONE_ENSURE = "rs";
     public static final String VARIABLE_RESULT_SET_TWO_ENSURE = "rs1";
+
+    public static final String LOGGING_LEVEL_KEY = "logging.level";
 }

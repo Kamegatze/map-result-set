@@ -54,8 +54,11 @@ dependencies {
     testImplementation(libs.bundles.drivers)
     testImplementation(libs.bundles.flyway)
 
+    testImplementation(libs.logback.classic)
+
     testRuntimeOnly(libs.junit.platform.launcher)
     testAnnotationProcessor(libs.map.result.set)
+    testAnnotationProcessor(libs.logback.classic)
 }
 
 tasks.test {

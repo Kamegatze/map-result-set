@@ -27,7 +27,8 @@ repositories {
 
 dependencies {
     implementation(libs.spring.jdbc)
-    implementation(libs.javapoet)
+    api(libs.javapoet)
+    api(libs.slf4j.api)
 }
 
 // Apply a specific Java toolchain to ease working on different environments.

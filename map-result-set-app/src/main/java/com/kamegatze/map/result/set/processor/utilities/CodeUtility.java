@@ -28,11 +28,11 @@ public final class CodeUtility {
             return Optional.of(generics.get(0));
         }
         throw new ClassCastException(
-                "%s not instanceof %s. Impossible get generic type from %s"
-                        .formatted(
-                                TypeMirror.class.toString(),
-                                DeclaredType.class.toString(),
-                                typeMirror.toString()));
+                TypeMirror.class
+                        + " not instanceof "
+                        + DeclaredType.class
+                        + ". Impossible get generic type from "
+                        + typeMirror);
     }
 
     public static List<VariableElement> getFieldsName(
@@ -45,10 +45,9 @@ public final class CodeUtility {
 
         var typeElement =
                 elementsUtils.getTypeElement(
-                        "%s.%s"
-                                .formatted(
-                                        packageName.getQualifiedName().toString(),
-                                        element.getSimpleName().toString()));
+                        packageName.getQualifiedName().toString()
+                                + "."
+                                + element.getSimpleName().toString());
 
         return ElementFilter.fieldsIn(
                 processingEnvironment.getElementUtils().getAllMembers(typeElement));
@@ -68,8 +67,6 @@ public final class CodeUtility {
 
     public static String generateSetMethodName(String fieldName) {
         var fieldNameCopy = fieldName.startsWith("is") ? fieldName.substring(2) : fieldName;
-        return "set%s"
-                .formatted(
-                        fieldNameCopy.substring(0, 1).toUpperCase() + fieldNameCopy.substring(1));
+        return "set" + fieldNameCopy.substring(0, 1).toUpperCase() + fieldNameCopy.substring(1);
     }
 }
