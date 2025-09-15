@@ -7,6 +7,7 @@ import com.kamegatze.map.result.set.processor.GenerateResultSetMapper;
 import com.kamegatze.map.result.set.processor.ResultSetMapper;
 import com.kamegatze.map.result.set.processor.exception.ExtractResultSetException;
 import com.kamegatze.map.result.set.processor.exception.MoreThenOneItemException;
+import com.kamegatze.map.result.set.processor.exception.UnsupportedTypeException;
 import com.kamegatze.map.result.set.processor.exception.WriteJavaFileException;
 import com.kamegatze.map.result.set.processor.utilities.CodeUtility;
 import com.kamegatze.map.result.set.processor.utilities.GeneralConstantUtility;
@@ -22,9 +23,7 @@ import com.palantir.javapoet.TypeVariableName;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.*;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.*;
 import javax.lang.model.type.TypeMirror;
@@ -244,10 +243,6 @@ public record GenerateImplementationMapResultSetServiceImpl(
                 CodeUtility.getFieldsName(
                         genericOptional.orElse(typeMirror), processingEnvironment);
         log.debug("Type: {} fields from type: {}", genericOptional.orElse(typeMirror), fieldsName);
-        var methodNameExtract =
-                genericOptional.isPresent()
-                        ? GeneralConstantUtility.EXTRACT_RESULT_SET_MAPPER
-                        : GeneralConstantUtility.EXTRACT_RESULT_SET_MAPPER_ONE;
 
         var root = classTreeService.createTree(fieldsName, genericOptional.orElse(typeMirror));
         log.debug("Tree from type: {}", root);
@@ -256,14 +251,10 @@ public record GenerateImplementationMapResultSetServiceImpl(
                 CodeBlock.builder()
                         .beginControlFlow("try")
                         .addStatement(
-                                /*template string is "return %s(%s, %s)"*/
-                                "return "
-                                        + methodNameExtract
-                                        + "("
-                                        + GeneralConstantUtility.ROOT_VARIABLE_ROW_MAPPER
-                                        + ", "
-                                        + nameVariableResultSet
-                                        + ")")
+                                extractToType(
+                                        typeMirror,
+                                        nameVariableResultSet,
+                                        genericOptional.isPresent()))
                         .endControlFlow()
                         .beginControlFlow("catch($T e)", SQLException.class)
                         .addStatement(
@@ -272,5 +263,53 @@ public record GenerateImplementationMapResultSetServiceImpl(
                                 "Error extract from ResultSet")
                         .endControlFlow()
                         .build());
+    }
+
+    private CodeBlock extractToType(
+            TypeMirror typeMirror, String nameVariableResultSet, boolean isGenericType) {
+        if (!isGenericType) {
+            return CodeBlock.builder()
+                    .add(
+                            "return "
+                                    + GeneralConstantUtility.EXTRACT_RESULT_SET_MAPPER_ONE
+                                    + "("
+                                    + GeneralConstantUtility.ROOT_VARIABLE_ROW_MAPPER
+                                    + ", "
+                                    + nameVariableResultSet
+                                    + ")")
+                    .build();
+        }
+        var clazz = typeMirror.toString().replaceFirst("<[a-zA-Z.]*>", "");
+
+        if (clazz.equals(Iterable.class.getCanonicalName())
+                || clazz.equals(Collection.class.getCanonicalName())
+                || clazz.equals(List.class.getCanonicalName())) {
+            return CodeBlock.builder()
+                    .add(
+                            "return $T.copyOf("
+                                    + GeneralConstantUtility.EXTRACT_RESULT_SET_MAPPER
+                                    + "("
+                                    + GeneralConstantUtility.ROOT_VARIABLE_ROW_MAPPER
+                                    + ", "
+                                    + nameVariableResultSet
+                                    + "))",
+                            List.class)
+                    .build();
+        }
+
+        if (clazz.equals(Set.class.getCanonicalName())) {
+            return CodeBlock.builder()
+                    .add(
+                            "return $T.copyOf("
+                                    + GeneralConstantUtility.EXTRACT_RESULT_SET_MAPPER
+                                    + "("
+                                    + GeneralConstantUtility.ROOT_VARIABLE_ROW_MAPPER
+                                    + ", "
+                                    + nameVariableResultSet
+                                    + "))",
+                            Set.class)
+                    .build();
+        }
+        throw new UnsupportedTypeException("Current type " + typeMirror + "is not supported");
     }
 }

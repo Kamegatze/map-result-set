@@ -6,6 +6,7 @@ import com.kamegatze.map.result.set.MapResultSetUtils;
 import com.kamegatze.map.result.set.processor.university.mapper.*;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.*;
 import javax.sql.DataSource;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.BeforeAll;
@@ -497,6 +498,74 @@ class MapResultSetProcessorPostgresIT {
             assertFalse(student.subject().isEmpty());
             assertNotNull(student.subject().get(0).teachers());
             assertFalse(student.subject().get(0).teachers().isEmpty());
+        }
+    }
+
+    @Test
+    void givenStudentRecordFromCollectionMapper_whenQueryAllStudent_thenListStudent()
+            throws SQLException {
+        var mapper = MapResultSetUtils.getMapper(CollectionMapper.class);
+
+        try (var connection = dataSource.getConnection();
+                var statement = connection.prepareStatement("select * from student")) {
+            statement.execute();
+
+            var students = mapper.toList(statement.getResultSet());
+
+            assertNotNull(students);
+            assertFalse(students.isEmpty());
+            assertInstanceOf(List.class, students);
+        }
+    }
+
+    @Test
+    void givenStudentRecordFromCollectionMapper_whenQueryAllStudent_thenIterableStudent()
+            throws SQLException {
+        var mapper = MapResultSetUtils.getMapper(CollectionMapper.class);
+
+        try (var connection = dataSource.getConnection();
+                var statement = connection.prepareStatement("select * from student")) {
+            statement.execute();
+
+            var students = mapper.toIterable(statement.getResultSet());
+
+            assertNotNull(students);
+            assertTrue(students.iterator().hasNext());
+            assertInstanceOf(Iterable.class, students);
+        }
+    }
+
+    @Test
+    void givenStudentRecordFromCollectionMapper_whenQueryAllStudent_thenCollectionStudent()
+            throws SQLException {
+        var mapper = MapResultSetUtils.getMapper(CollectionMapper.class);
+
+        try (var connection = dataSource.getConnection();
+                var statement = connection.prepareStatement("select * from student")) {
+            statement.execute();
+
+            var students = mapper.toCollection(statement.getResultSet());
+
+            assertNotNull(students);
+            assertFalse(students.isEmpty());
+            assertInstanceOf(Collection.class, students);
+        }
+    }
+
+    @Test
+    void givenStudentRecordFromCollectionMapper_whenQueryAllStudent_thenSetStudent()
+            throws SQLException {
+        var mapper = MapResultSetUtils.getMapper(CollectionMapper.class);
+
+        try (var connection = dataSource.getConnection();
+                var statement = connection.prepareStatement("select * from student")) {
+            statement.execute();
+
+            var students = mapper.toSet(statement.getResultSet());
+
+            assertNotNull(students);
+            assertFalse(students.isEmpty());
+            assertInstanceOf(Set.class, students);
         }
     }
 }
