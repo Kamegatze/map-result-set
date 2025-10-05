@@ -1,0 +1,3 @@
+insert into teacher(id, first_name, last_name, patronymic, birthdate) values (1, 'Аркадий', 'Щеткин', 'Аркадьевич', date '1969-06-14');
+insert into teacher(id, first_name, last_name, patronymic, birthdate) values (2, 'Трофим', 'Закрятин', 'Александрович', date '1963-12-01');
+insert into teacher(id, first_name, last_name, patronymic, birthdate) values (3, 'Ника', 'Данильцина', 'Семеновна', date '1983-08-05');
