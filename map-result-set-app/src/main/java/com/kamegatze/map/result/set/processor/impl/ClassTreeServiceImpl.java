@@ -11,49 +11,43 @@ import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
 
 public record ClassTreeServiceImpl(ProcessingEnvironment processingEnvironment)
-        implements ClassTreeService {
+    implements ClassTreeService {
 
-    @Override
-    public ClassTree createTree(List<VariableElement> variableElements, TypeMirror rootType) {
-        var uuidRoot = UUID.randomUUID().toString().replace("-", "");
-        var root =
-                new ClassTreeSimple(
-                        GeneralConstantUtility.ROOT_VARIABLE_ROW_MAPPER,
-                        uuidRoot,
-                        rootType,
-                        variableElements,
-                        null,
-                        new ArrayList<>());
+  @Override
+  public ClassTree createTree(List<VariableElement> variableElements, TypeMirror rootType) {
+    var uuidRoot = UUID.randomUUID().toString().replace("-", "");
+    var root =
+        new ClassTreeSimple(
+            GeneralConstantUtility.ROOT_VARIABLE_ROW_MAPPER,
+            uuidRoot,
+            rootType,
+            variableElements,
+            null,
+            new ArrayList<>());
 
-        var queue = new ArrayDeque<ClassTreeSimple>();
-        queue.add(root);
+    var queue = new ArrayDeque<ClassTreeSimple>();
+    queue.add(root);
 
-        while (!queue.isEmpty()) {
-            var item = queue.pollFirst();
+    while (!queue.isEmpty()) {
+      var item = queue.pollFirst();
 
-            item.fields().stream()
-                    .filter(it -> Objects.nonNull(it.getAnnotation(Cursor.class)))
-                    .forEach(
-                            it -> {
-                                var fields =
-                                        CodeUtility.getFieldsName(
-                                                CodeUtility.getOneGeneric(it.asType())
-                                                        .orElse(it.asType()),
-                                                processingEnvironment);
-                                var uuidItem = UUID.randomUUID().toString().replace("-", "");
-                                var child =
-                                        new ClassTreeSimple(
-                                                it.toString(),
-                                                uuidItem,
-                                                it.asType(),
-                                                fields,
-                                                item,
-                                                new ArrayList<>());
-                                item.children().add(child);
-                                queue.add(child);
-                            });
-        }
-
-        return root;
+      item.fields().stream()
+          .filter(it -> Objects.nonNull(it.getAnnotation(Cursor.class)))
+          .forEach(
+              it -> {
+                var fields =
+                    CodeUtility.getFieldsName(
+                        CodeUtility.getOneGeneric(it.asType()).orElse(it.asType()),
+                        processingEnvironment);
+                var uuidItem = UUID.randomUUID().toString().replace("-", "");
+                var child =
+                    new ClassTreeSimple(
+                        it.toString(), uuidItem, it.asType(), fields, item, new ArrayList<>());
+                item.children().add(child);
+                queue.add(child);
+              });
     }
+
+    return root;
+  }
 }

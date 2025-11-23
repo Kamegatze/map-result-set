@@ -4,33 +4,33 @@ import com.kamegatze.map.result.set.Cursor;
 import java.util.List;
 
 public class SubjectClassNestedOne {
-    private Long id;
-    private String name;
+  private Long id;
+  private String name;
 
-    @Cursor("teachers")
-    private List<TeacherClass> teachers;
+  @Cursor("teachers")
+  private List<TeacherClass> teachers;
 
-    public Long getId() {
-        return id;
-    }
+  public Long getId() {
+    return id;
+  }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+  public void setId(Long id) {
+    this.id = id;
+  }
 
-    public String getName() {
-        return name;
-    }
+  public String getName() {
+    return name;
+  }
 
-    public void setName(String name) {
-        this.name = name;
-    }
+  public void setName(String name) {
+    this.name = name;
+  }
 
-    public List<TeacherClass> getTeachers() {
-        return teachers;
-    }
+  public List<TeacherClass> getTeachers() {
+    return teachers;
+  }
 
-    public void setTeachers(List<TeacherClass> teachers) {
-        this.teachers = teachers;
-    }
+  public void setTeachers(List<TeacherClass> teachers) {
+    this.teachers = teachers;
+  }
 }

@@ -5,5 +5,5 @@ import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
 
 public interface ClassTreeService {
-    ClassTree createTree(List<VariableElement> variableElements, TypeMirror rootType);
+  ClassTree createTree(List<VariableElement> variableElements, TypeMirror rootType);
 }

@@ -5,15 +5,15 @@ import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
 
 public interface ClassTree {
-    String name();
+  String name();
 
-    String uuid();
+  String uuid();
 
-    TypeMirror typeMirror();
+  TypeMirror typeMirror();
 
-    ClassTree parent();
+  ClassTree parent();
 
-    List<ClassTree> children();
+  List<ClassTree> children();
 
-    List<VariableElement> fields();
+  List<VariableElement> fields();
 }

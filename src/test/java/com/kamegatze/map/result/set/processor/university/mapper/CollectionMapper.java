@@ -8,11 +8,11 @@ import java.util.*;
 @MapResultSet
 public interface CollectionMapper {
 
-    Iterable<StudentClass> toIterable(ResultSet resultSet);
+  Iterable<StudentClass> toIterable(ResultSet resultSet);
 
-    Collection<StudentClass> toCollection(ResultSet resultSet);
+  Collection<StudentClass> toCollection(ResultSet resultSet);
 
-    List<StudentClass> toList(ResultSet resultSet);
+  List<StudentClass> toList(ResultSet resultSet);
 
-    Set<StudentClass> toSet(ResultSet resultSet);
+  Set<StudentClass> toSet(ResultSet resultSet);
 }

@@ -5,7 +5,7 @@ import javax.lang.model.element.Element;
 
 public interface GenerateImplementationMapResultSetService {
 
-    JavaFile generate(Element element);
+  JavaFile generate(Element element);
 
-    void write(JavaFile javaFile);
+  void write(JavaFile javaFile);
 }
