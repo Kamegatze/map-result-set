@@ -7,10 +7,10 @@
  */
 
 plugins {
-    // Apply the java-library plugin for API and implementation separation.
-    java
-    `java-library`
-    `maven-publish`
+  // Apply the java-library plugin for API and implementation separation.
+  java
+  `java-library`
+  `maven-publish`
 }
 
 group = "com.kamegatze"
@@ -20,27 +20,24 @@ val artifact = "map-result-set"
 version = "0.0.1-SNAPSHOT"
 
 repositories {
-    // Use Maven Central for resolving dependencies.
-    mavenCentral()
-    mavenLocal()
+  // Use Maven Central for resolving dependencies.
+  mavenCentral()
+  mavenLocal()
 }
 
-dependencies {
-    api(libs.javapoet)
-    api(libs.slf4j.api)
-}
+dependencies { api(libs.javapoet) }
 
 // Apply a specific Java toolchain to ease working on different environments.
 java { toolchain { languageVersion = JavaLanguageVersion.of(17) } }
 
 publishing {
-    publications {
-        create<MavenPublication>("maven") {
-            groupId = group as String
-            artifactId = artifact
-            version = project.version as String
+  publications {
+    create<MavenPublication>("maven") {
+      groupId = group as String
+      artifactId = artifact
+      version = project.version as String
 
-            from(components["java"])
-        }
+      from(components["java"])
     }
+  }
 }

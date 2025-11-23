@@ -10,13 +10,13 @@ import org.springframework.jdbc.core.RowMapper;
 @MapResultSet
 public interface StudentRecordNestedTwoMapper {
 
-    default RowMapper<StudentRecordNestedTwo> getRowMapper() {
-        return (rs, rowNum) -> getResultSetMapper().mapRow(rs, rowNum);
-    }
+  default RowMapper<StudentRecordNestedTwo> getRowMapper() {
+    return (rs, rowNum) -> getResultSetMapper().mapRow(rs, rowNum);
+  }
 
-    ResultSetMapper<StudentRecordNestedTwo> getResultSetMapper();
+  ResultSetMapper<StudentRecordNestedTwo> getResultSetMapper();
 
-    List<StudentRecordNestedTwo> getStudentRecordNestedTwoAll(ResultSet resultSet);
+  List<StudentRecordNestedTwo> getStudentRecordNestedTwoAll(ResultSet resultSet);
 
-    StudentRecordNestedTwo getStudentRecordNestedTwo(ResultSet resultSet);
+  StudentRecordNestedTwo getStudentRecordNestedTwo(ResultSet resultSet);
 }

@@ -1,7 +1,9 @@
 package com.kamegatze.map.result.set.processor;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.kamegatze.map.result.set.MapResultSetUtils;
 import com.kamegatze.map.result.set.processor.university.mapper.CollectionMapper;
@@ -16,166 +18,167 @@ import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.mysql.MySQLContainer;
 
 @Testcontainers
 class MapResultSetProcessorMySQLIT {
 
-    @Container static MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.0.36");
+  @Container static MySQLContainer mysql = new MySQLContainer("mysql:8.0.36");
 
-    static JdbcTemplate jdbcTemplate;
-    static DataSource dataSource;
+  static JdbcTemplate jdbcTemplate;
+  static DataSource dataSource;
 
-    @BeforeAll
-    static void setUp() {
-        var datasource = new MysqlDataSource();
-        datasource.setUser(mysql.getUsername());
-        datasource.setPassword(mysql.getPassword());
-        datasource.setUrl(mysql.getJdbcUrl());
+  @BeforeAll
+  static void setUp() {
+    var datasource = new MysqlDataSource();
 
-        dataSource = datasource;
+    datasource.setUser(mysql.getUsername());
+    datasource.setPassword(mysql.getPassword());
+    datasource.setUrl(mysql.getJdbcUrl());
 
-        Flyway.configure()
-                .locations("classpath:db/migration/mysql")
-                .dataSource(datasource)
-                .load()
-                .migrate();
+    dataSource = datasource;
 
-        jdbcTemplate = new JdbcTemplate(datasource);
+    Flyway.configure()
+        .locations("classpath:db/migration/mysql")
+        .dataSource(datasource)
+        .load()
+        .migrate();
+
+    jdbcTemplate = new JdbcTemplate(datasource);
+  }
+
+  @Test
+  void givenMapperClassWithoutNestedObject_whenQueryAllStudent_thenGetListStudent() {
+    var mapper = MapResultSetUtils.getMapper(StudentClassMapper.class);
+
+    var studentClassList = jdbcTemplate.query("select * from student", mapper.getRowMapper());
+
+    assertNotNull(studentClassList);
+    assertFalse(studentClassList.isEmpty());
+  }
+
+  @Test
+  void givenMapperRecordWithoutNestedObject_whenQueryAllStudent_thenGetListStudent() {
+    var mapper = MapResultSetUtils.getMapper(StudentRecordMapper.class);
+
+    var studentRecordList = jdbcTemplate.query("select * from student", mapper.getRowMapper());
+
+    assertNotNull(studentRecordList);
+    assertFalse(studentRecordList.isEmpty());
+  }
+
+  @Test
+  void givenStudentClassListWithoutNestedViaDatasource_whenQueryAllStudent_thenGetListStudent()
+      throws Exception {
+    var mapper = MapResultSetUtils.getMapper(StudentClassMapper.class);
+
+    try (var connection = dataSource.getConnection();
+        var statement = connection.prepareStatement("select * from student")) {
+      statement.execute();
+      var resultSet = statement.getResultSet();
+
+      var studentClassList = mapper.getStudentsClass(resultSet);
+
+      assertFalse(studentClassList.isEmpty());
     }
+  }
 
-    @Test
-    void givenMapperClassWithoutNestedObject_whenQueryAllStudent_thenGetListStudent() {
-        var mapper = MapResultSetUtils.getMapper(StudentClassMapper.class);
+  @Test
+  void givenStudentRecordListWithoutNestedViaDatasource_whenQueryAllStudent_thenGetListStudent()
+      throws Exception {
+    var mapper = MapResultSetUtils.getMapper(StudentRecordMapper.class);
 
-        var studentClassList = jdbcTemplate.query("select * from student", mapper.getRowMapper());
+    try (var connection = dataSource.getConnection();
+        var statement = connection.prepareStatement("select * from student")) {
+      statement.execute();
+      var resultSet = statement.getResultSet();
 
-        assertNotNull(studentClassList);
-        assertFalse(studentClassList.isEmpty());
+      var studentRecordList = mapper.getStudentRecordList(resultSet);
+
+      assertFalse(studentRecordList.isEmpty());
     }
+  }
 
-    @Test
-    void givenMapperRecordWithoutNestedObject_whenQueryAllStudent_thenGetListStudent() {
-        var mapper = MapResultSetUtils.getMapper(StudentRecordMapper.class);
+  @Test
+  void givenStudentClassWithoutNested_whenQueryAllStudent_thenGetListStudent() throws Exception {
+    var mapper = MapResultSetUtils.getMapper(StudentClassMapper.class);
 
-        var studentRecordList = jdbcTemplate.query("select * from student", mapper.getRowMapper());
+    try (var connection = dataSource.getConnection();
+        var statement = connection.prepareStatement("select * from student where id = 1")) {
+      statement.execute();
+      var resultSet = statement.getResultSet();
 
-        assertNotNull(studentRecordList);
-        assertFalse(studentRecordList.isEmpty());
+      var studentClass = mapper.getStudentClass(resultSet);
+
+      assertNotNull(studentClass);
     }
+  }
 
-    @Test
-    void givenStudentClassListWithoutNestedViaDatasource_whenQueryAllStudent_thenGetListStudent()
-            throws Exception {
-        var mapper = MapResultSetUtils.getMapper(StudentClassMapper.class);
+  @Test
+  void givenStudentRecordWithoutNested_whenQueryAllStudent_thenGetListStudent() throws Exception {
+    var mapper = MapResultSetUtils.getMapper(StudentRecordMapper.class);
 
-        try (var connection = dataSource.getConnection();
-                var statement = connection.prepareStatement("select * from student")) {
-            statement.execute();
-            var resultSet = statement.getResultSet();
+    try (var connection = dataSource.getConnection();
+        var statement = connection.prepareStatement("select * from student where id = 1")) {
+      statement.execute();
+      var resultSet = statement.getResultSet();
 
-            var studentClassList = mapper.getStudentsClass(resultSet);
+      var studentRecord = mapper.getStudentRecord(resultSet);
 
-            assertFalse(studentClassList.isEmpty());
-        }
+      assertNotNull(studentRecord);
     }
+  }
 
-    @Test
-    void givenStudentRecordListWithoutNestedViaDatasource_whenQueryAllStudent_thenGetListStudent()
-            throws Exception {
-        var mapper = MapResultSetUtils.getMapper(StudentRecordMapper.class);
+  @Test
+  void givenStudentRecordFromCollectionMapper_whenQueryAllStudent_thenIterableStudent()
+      throws SQLException {
+    var mapper = MapResultSetUtils.getMapper(CollectionMapper.class);
 
-        try (var connection = dataSource.getConnection();
-                var statement = connection.prepareStatement("select * from student")) {
-            statement.execute();
-            var resultSet = statement.getResultSet();
+    try (var connection = dataSource.getConnection();
+        var statement = connection.prepareStatement("select * from student")) {
+      statement.execute();
 
-            var studentRecordList = mapper.getStudentRecordList(resultSet);
+      var students = mapper.toIterable(statement.getResultSet());
 
-            assertFalse(studentRecordList.isEmpty());
-        }
+      assertNotNull(students);
+      assertTrue(students.iterator().hasNext());
+      assertInstanceOf(Iterable.class, students);
     }
+  }
 
-    @Test
-    void givenStudentClassWithoutNested_whenQueryAllStudent_thenGetListStudent() throws Exception {
-        var mapper = MapResultSetUtils.getMapper(StudentClassMapper.class);
+  @Test
+  void givenStudentRecordFromCollectionMapper_whenQueryAllStudent_thenCollectionStudent()
+      throws SQLException {
+    var mapper = MapResultSetUtils.getMapper(CollectionMapper.class);
 
-        try (var connection = dataSource.getConnection();
-                var statement = connection.prepareStatement("select * from student where id = 1")) {
-            statement.execute();
-            var resultSet = statement.getResultSet();
+    try (var connection = dataSource.getConnection();
+        var statement = connection.prepareStatement("select * from student")) {
+      statement.execute();
 
-            var studentClass = mapper.getStudentClass(resultSet);
+      var students = mapper.toCollection(statement.getResultSet());
 
-            assertNotNull(studentClass);
-        }
+      assertNotNull(students);
+      assertFalse(students.isEmpty());
+      assertInstanceOf(Collection.class, students);
     }
+  }
 
-    @Test
-    void givenStudentRecordWithoutNested_whenQueryAllStudent_thenGetListStudent() throws Exception {
-        var mapper = MapResultSetUtils.getMapper(StudentRecordMapper.class);
+  @Test
+  void givenStudentRecordFromCollectionMapper_whenQueryAllStudent_thenSetStudent()
+      throws SQLException {
+    var mapper = MapResultSetUtils.getMapper(CollectionMapper.class);
 
-        try (var connection = dataSource.getConnection();
-                var statement = connection.prepareStatement("select * from student where id = 1")) {
-            statement.execute();
-            var resultSet = statement.getResultSet();
+    try (var connection = dataSource.getConnection();
+        var statement = connection.prepareStatement("select * from student")) {
+      statement.execute();
 
-            var studentRecord = mapper.getStudentRecord(resultSet);
+      var students = mapper.toSet(statement.getResultSet());
 
-            assertNotNull(studentRecord);
-        }
+      assertNotNull(students);
+      assertFalse(students.isEmpty());
+      assertInstanceOf(Set.class, students);
     }
-
-    @Test
-    void givenStudentRecordFromCollectionMapper_whenQueryAllStudent_thenIterableStudent()
-            throws SQLException {
-        var mapper = MapResultSetUtils.getMapper(CollectionMapper.class);
-
-        try (var connection = dataSource.getConnection();
-                var statement = connection.prepareStatement("select * from student")) {
-            statement.execute();
-
-            var students = mapper.toIterable(statement.getResultSet());
-
-            assertNotNull(students);
-            assertTrue(students.iterator().hasNext());
-            assertInstanceOf(Iterable.class, students);
-        }
-    }
-
-    @Test
-    void givenStudentRecordFromCollectionMapper_whenQueryAllStudent_thenCollectionStudent()
-            throws SQLException {
-        var mapper = MapResultSetUtils.getMapper(CollectionMapper.class);
-
-        try (var connection = dataSource.getConnection();
-                var statement = connection.prepareStatement("select * from student")) {
-            statement.execute();
-
-            var students = mapper.toCollection(statement.getResultSet());
-
-            assertNotNull(students);
-            assertFalse(students.isEmpty());
-            assertInstanceOf(Collection.class, students);
-        }
-    }
-
-    @Test
-    void givenStudentRecordFromCollectionMapper_whenQueryAllStudent_thenSetStudent()
-            throws SQLException {
-        var mapper = MapResultSetUtils.getMapper(CollectionMapper.class);
-
-        try (var connection = dataSource.getConnection();
-                var statement = connection.prepareStatement("select * from student")) {
-            statement.execute();
-
-            var students = mapper.toSet(statement.getResultSet());
-
-            assertNotNull(students);
-            assertFalse(students.isEmpty());
-            assertInstanceOf(Set.class, students);
-        }
-    }
+  }
 }
