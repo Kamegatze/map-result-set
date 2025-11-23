@@ -10,62 +10,62 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
  */
 
 plugins {
-  // Apply the java-library plugin for API and implementation separation.
-  java
-  alias(libs.plugins.spotless)
+    // Apply the java-library plugin for API and implementation separation.
+    java
+    alias(libs.plugins.spotless)
 }
 
 spotless {
-  java {
-    target("**/*.java")
-    googleJavaFormat()
-    lineEndings = LineEnding.UNIX
-    importOrder()
-    removeUnusedImports()
-    leadingTabsToSpaces(2)
-  }
-  kotlinGradle {
-    lineEndings = LineEnding.UNIX
-    target("*.gradle.kts", "**/*.gradle.kts")
-    ktfmt().googleStyle().configure {
-      it.setBlockIndent(2)
-      it.setContinuationIndent(2)
+    java {
+        target("**/*.java")
+        googleJavaFormat()
+        lineEndings = LineEnding.UNIX
+        importOrder()
+        removeUnusedImports()
+        leadingTabsToSpaces(4)
     }
-  }
+    kotlinGradle {
+        lineEndings = LineEnding.UNIX
+        target("*.gradle.kts", "**/*.gradle.kts")
+        ktfmt().googleStyle().configure {
+            it.setBlockIndent(4)
+            it.setContinuationIndent(4)
+        }
+    }
 }
 
 repositories {
-  // Use Maven Central for resolving dependencies.
-  mavenCentral()
-  mavenLocal()
+    // Use Maven Central for resolving dependencies.
+    mavenCentral()
+    mavenLocal()
 }
 
 dependencies {
-  testImplementation(libs.spring.jdbc)
+    testImplementation(libs.spring.jdbc)
 
-  testImplementation(libs.map.result.set)
+    testImplementation(libs.map.result.set)
 
-  testImplementation(platform(libs.junit.bom))
-  testImplementation(libs.junit.jupiter)
+    testImplementation(platform(libs.junit.bom))
+    testImplementation(libs.junit.jupiter)
 
-  testImplementation(libs.apache.commons.compress)
+    testImplementation(libs.apache.commons.compress)
 
-  testImplementation(libs.bundles.testcontainer)
-  testImplementation(libs.bundles.drivers)
-  testImplementation(libs.bundles.flyway)
+    testImplementation(libs.bundles.testcontainer)
+    testImplementation(libs.bundles.drivers)
+    testImplementation(libs.bundles.flyway)
 
-  testImplementation(libs.logback.classic)
+    testImplementation(libs.logback.classic)
 
-  testRuntimeOnly(libs.junit.platform.launcher)
-  testAnnotationProcessor(libs.map.result.set)
-  testAnnotationProcessor(libs.logback.classic)
+    testRuntimeOnly(libs.junit.platform.launcher)
+    testAnnotationProcessor(libs.map.result.set)
+    testAnnotationProcessor(libs.logback.classic)
 }
 
 tasks.test {
-  useJUnitPlatform()
-  testLogging {
-    events.addAll(listOf(TestLogEvent.PASSED, TestLogEvent.SKIPPED, TestLogEvent.FAILED))
-  }
+    useJUnitPlatform()
+    testLogging {
+        events.addAll(listOf(TestLogEvent.PASSED, TestLogEvent.SKIPPED, TestLogEvent.FAILED))
+    }
 }
 
 // Apply a specific Java toolchain to ease working on different environments.

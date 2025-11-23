@@ -1,6 +1,6 @@
 package com.kamegatze.map.result.set.processor;
 
-import java.util.*;
+import java.util.List;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
 

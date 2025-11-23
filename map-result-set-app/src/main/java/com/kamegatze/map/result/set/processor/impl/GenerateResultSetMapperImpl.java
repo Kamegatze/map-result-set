@@ -34,12 +34,16 @@ public record GenerateResultSetMapperImpl(
             + GeneralConstantUtility.ROOT_VARIABLE_ROW_MAPPER
             + " = ("
             + GeneralConstantUtility.VARIABLE_RESULT_SET_ONE_ENSURE
-            + " , rowNum) -> {\n",
+            + root.uuid()
+            + " , rowNum"
+            + root.uuid()
+            + ") -> {\n",
         ParameterizedTypeName.get(
             ClassName.get(ResultSetMapper.class), TypeName.get(root.typeMirror())));
     builder.indent();
 
-    builder.add(createFields(root, GeneralConstantUtility.VARIABLE_RESULT_SET_ONE_ENSURE));
+    builder.add(
+        createFields(root, GeneralConstantUtility.VARIABLE_RESULT_SET_ONE_ENSURE + root.uuid()));
 
     while (!stack.isEmpty()) {
       if (stack.getLast().children().isEmpty()) {
@@ -56,14 +60,21 @@ public record GenerateResultSetMapperImpl(
                 + item.parent().uuid()
                 + " = ("
                 + GeneralConstantUtility.VARIABLE_RESULT_SET_TWO_ENSURE
-                + " , rowNum1) -> {\n",
+                + item.uuid()
+                + " , rowNum1"
+                + item.uuid()
+                + ") -> {\n",
             ParameterizedTypeName.get(
                 ClassName.get(ResultSetMapper.class), TypeName.get(typeMirror)));
         builder.indent();
 
-        builder.add(createFields(item, GeneralConstantUtility.VARIABLE_RESULT_SET_TWO_ENSURE));
+        builder.add(
+            createFields(
+                item, GeneralConstantUtility.VARIABLE_RESULT_SET_TWO_ENSURE + item.uuid()));
 
-        builder.add(createNewObject(item, GeneralConstantUtility.VARIABLE_RESULT_SET_TWO_ENSURE));
+        builder.add(
+            createNewObject(
+                item, GeneralConstantUtility.VARIABLE_RESULT_SET_TWO_ENSURE + item.uuid()));
 
         builder.addStatement(GeneralConstantUtility.RETURN_TEMPLATE + item.name() + item.uuid());
         builder.unindent();
@@ -75,8 +86,8 @@ public record GenerateResultSetMapperImpl(
       }
     }
 
-    builder.add(createNewObject(root, GeneralConstantUtility.VARIABLE_RESULT_SET_ONE_ENSURE));
-
+    builder.add(
+        createNewObject(root, GeneralConstantUtility.VARIABLE_RESULT_SET_ONE_ENSURE + root.uuid()));
     builder.addStatement(GeneralConstantUtility.RETURN_TEMPLATE + root.name() + root.uuid());
     builder.unindent();
     builder.add("};\n");

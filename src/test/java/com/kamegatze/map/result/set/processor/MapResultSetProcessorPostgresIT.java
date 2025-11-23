@@ -567,4 +567,21 @@ class MapResultSetProcessorPostgresIT {
       assertInstanceOf(Set.class, students);
     }
   }
+
+  @Test
+  void givenOptionalStudentClass_whenQueryAllStudent_thenReturnOPtionalStudentWithExistRecord()
+      throws SQLException {
+    var mapper = MapResultSetUtils.getMapper(StudentClassMapper.class);
+    try (var connection = dataSource.getConnection();
+        var statement = connection.prepareStatement("select * from student where id = 1")) {
+      statement.execute();
+
+      var studentOptional = mapper.getOptionalStudentClass(statement.getResultSet());
+
+      assertNotNull(studentOptional);
+      assertTrue(studentOptional.isPresent());
+      assertInstanceOf(Optional.class, studentOptional);
+      assertEquals(1L, studentOptional.get().getId());
+    }
+  }
 }

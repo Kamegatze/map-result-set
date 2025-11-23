@@ -5,6 +5,7 @@ import com.kamegatze.map.result.set.processor.ResultSetMapper;
 import com.kamegatze.map.result.set.processor.university.model.StudentClass;
 import java.sql.ResultSet;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.jdbc.core.RowMapper;
 
 @MapResultSet
@@ -16,7 +17,9 @@ public interface StudentClassMapper {
 
   ResultSetMapper<StudentClass> getResultSetMapper();
 
-  StudentClass getStudentClass(ResultSet resultSet);
+  StudentClass getStudentClass(ResultSet rs);
+
+  Optional<StudentClass> getOptionalStudentClass(ResultSet resultSet);
 
   List<StudentClass> getStudentsClass(ResultSet resultSet);
 }

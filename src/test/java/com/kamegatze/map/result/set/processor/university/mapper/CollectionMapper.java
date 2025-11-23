@@ -3,7 +3,9 @@ package com.kamegatze.map.result.set.processor.university.mapper;
 import com.kamegatze.map.result.set.MapResultSet;
 import com.kamegatze.map.result.set.processor.university.model.StudentClass;
 import java.sql.ResultSet;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 
 @MapResultSet
 public interface CollectionMapper {
