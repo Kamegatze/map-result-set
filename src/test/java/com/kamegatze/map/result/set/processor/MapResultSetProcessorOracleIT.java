@@ -4,9 +4,12 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
 import com.kamegatze.map.result.set.MapResultSetUtils;
+import com.kamegatze.map.result.set.processor.exception.MoreThenOneItemException;
 import com.kamegatze.map.result.set.processor.university.mapper.*;
+import com.kamegatze.map.result.set.processor.university.model.StudentClass;
 import java.sql.SQLException;
 import java.util.Collection;
+import java.util.Optional;
 import java.util.Set;
 import javax.sql.DataSource;
 import oracle.jdbc.pool.OracleDataSource;
@@ -14,6 +17,7 @@ import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.ResultSetExtractor;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.oracle.OracleContainer;
@@ -515,5 +519,33 @@ class MapResultSetProcessorOracleIT {
       assertFalse(students.isEmpty());
       assertInstanceOf(Set.class, students);
     }
+  }
+
+  @Test
+  void givenOptionalStudentClass_whenQueryAllStudent_thenReturnOPtionalStudentWithExistRecord()
+      throws SQLException {
+    var mapper = MapResultSetUtils.getMapper(StudentClassMapper.class);
+    try (var connection = dataSource.getConnection();
+        var statement = connection.prepareStatement("select * from student where id = 1")) {
+      statement.execute();
+
+      var studentOptional = mapper.getOptionalStudentClass(statement.getResultSet());
+
+      assertNotNull(studentOptional);
+      assertTrue(studentOptional.isPresent());
+      assertInstanceOf(Optional.class, studentOptional);
+      assertEquals(1L, studentOptional.get().getId());
+    }
+  }
+
+  @Test
+  void givenOptionalStudentClass_whenQuerySeveralEntity_thenThrowMoreThenOneItemException() {
+    var mapper = MapResultSetUtils.getMapper(StudentClassMapper.class);
+    ResultSetExtractor<Optional<StudentClass>> extractor = mapper::getOptionalStudentClass;
+    var throwable =
+        assertThrows(
+            MoreThenOneItemException.class,
+            () -> jdbcTemplate.query("select * from student", extractor));
+    assertEquals("ResultSet more then one item", throwable.getMessage());
   }
 }

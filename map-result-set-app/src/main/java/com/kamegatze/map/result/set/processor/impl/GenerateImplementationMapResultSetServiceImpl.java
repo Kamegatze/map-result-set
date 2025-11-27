@@ -23,9 +23,17 @@ import com.palantir.javapoet.TypeVariableName;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Optional;
+import java.util.Set;
 import javax.annotation.processing.ProcessingEnvironment;
-import javax.lang.model.element.*;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.Modifier;
 import javax.lang.model.type.TypeMirror;
 
 public final class GenerateImplementationMapResultSetServiceImpl
@@ -143,7 +151,7 @@ public final class GenerateImplementationMapResultSetServiceImpl
                 + GeneralConstantUtility.EXTRACT_ARG_RESULT_SET
                 + ")")
         .beginControlFlow("if(list.isEmpty())")
-        .addStatement("return null")
+        .addStatement("return $T.empty()", ClassName.get(Optional.class))
         .endControlFlow()
         .beginControlFlow("if(list.size() > 1)")
         .addStatement(
@@ -151,8 +159,8 @@ public final class GenerateImplementationMapResultSetServiceImpl
             ClassName.get(MoreThenOneItemException.class),
             "ResultSet more then one item")
         .endControlFlow()
-        .addStatement("return list.get(0)")
-        .returns(generic)
+        .addStatement("return $T.ofNullable(list.get(0))", ClassName.get(Optional.class))
+        .returns(ParameterizedTypeName.get(ClassName.get(Optional.class), generic))
         .build();
   }
 
@@ -277,7 +285,7 @@ public final class GenerateImplementationMapResultSetServiceImpl
                   + GeneralConstantUtility.ROOT_VARIABLE_ROW_MAPPER
                   + ", "
                   + nameVariableResultSet
-                  + ")")
+                  + ").orElse(null)")
           .build();
     }
     var clazz = typeMirror.toString().replaceFirst("<[a-zA-Z.]*>", "");
@@ -311,6 +319,20 @@ public final class GenerateImplementationMapResultSetServiceImpl
               Set.class)
           .build();
     }
+
+    if (clazz.equals(Optional.class.getCanonicalName())) {
+      return CodeBlock.builder()
+          .add(
+              "return "
+                  + GeneralConstantUtility.EXTRACT_RESULT_SET_MAPPER_ONE
+                  + "("
+                  + GeneralConstantUtility.ROOT_VARIABLE_ROW_MAPPER
+                  + ", "
+                  + nameVariableResultSet
+                  + ")")
+          .build();
+    }
+
     throw new UnsupportedTypeException("Current type " + typeMirror + "is not supported");
   }
 }
