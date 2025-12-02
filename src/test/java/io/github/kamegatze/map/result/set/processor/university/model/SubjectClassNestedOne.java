@@ -7,8 +7,7 @@ public class SubjectClassNestedOne {
   private Long id;
   private String name;
 
-  @Cursor("teachers")
-  private List<TeacherClass> teachers;
+  @Cursor private List<TeacherClass> teachers;
 
   public Long getId() {
     return id;

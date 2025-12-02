@@ -1,15 +1,12 @@
 package io.github.kamegatze.map.result.set.processor.university.model;
 
-import io.github.kamegatze.map.result.set.Column;
 import java.time.LocalDate;
 
 public class TeacherClass {
   private Long id;
 
-  @Column("first_name")
   private String firstName;
 
-  @Column("last_name")
   private String lastName;
 
   private String patronymic;

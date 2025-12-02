@@ -5,12 +5,14 @@ import com.palantir.javapoet.CodeBlock;
 import com.palantir.javapoet.ParameterizedTypeName;
 import com.palantir.javapoet.TypeName;
 import io.github.kamegatze.map.result.set.Cursor;
+import io.github.kamegatze.map.result.set.logger.LoggerFactory;
 import io.github.kamegatze.map.result.set.processor.ClassTree;
-import io.github.kamegatze.map.result.set.processor.ClassTreeService;
 import io.github.kamegatze.map.result.set.processor.GenerateResultSetMapper;
 import io.github.kamegatze.map.result.set.processor.ResultSetMapper;
 import io.github.kamegatze.map.result.set.processor.utilities.CodeUtility;
 import io.github.kamegatze.map.result.set.processor.utilities.GeneralConstantUtility;
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 import java.sql.ResultSet;
 import java.util.ArrayDeque;
 import java.util.Objects;
@@ -19,9 +21,16 @@ import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.type.TypeMirror;
 
-public record GenerateResultSetMapperImpl(
-    ProcessingEnvironment processingEnvironment, ClassTreeService classTreeService)
-    implements GenerateResultSetMapper {
+public final class GenerateResultSetMapperImpl implements GenerateResultSetMapper {
+
+  private final ProcessingEnvironment processingEnvironment;
+
+  private final Logger log;
+
+  public GenerateResultSetMapperImpl(ProcessingEnvironment processingEnvironment) {
+    this.processingEnvironment = processingEnvironment;
+    log = LoggerFactory.create(GenerateResultSetMapperImpl.class);
+  }
 
   @Override
   public CodeBlock generate(ClassTree root) {
@@ -99,12 +108,21 @@ public record GenerateResultSetMapperImpl(
     item.fields().stream()
         .filter(it -> Objects.isNull(it.getAnnotation(Cursor.class)))
         .forEach(
-            it ->
-                builder.addStatement(
-                    /*template is "var %s = %s.getObject($S, $T.class)"*/
-                    "var " + it + item.uuid() + " = " + nameResultSet + ".getObject($S, $T.class)",
-                    CodeUtility.getColumnName(it),
-                    TypeName.get(it.asType())));
+            it -> {
+              var policy = CodeUtility.getColumnPolicy(it, item.typeMirror());
+              log.log(
+                  Level.INFO,
+                  "column policy for type: {0} is policy: {1} is field: {2}",
+                  item.typeMirror(),
+                  policy,
+                  it.getSimpleName());
+              builder.addStatement(
+                  /*template is "var %s = %s.getObject($S, $T.class)"*/
+                  "var " + it + item.uuid() + " = " + nameResultSet + ".getObject($S, $T.class)",
+                  CodeUtility.getColumnName(it, policy),
+                  TypeName.get(it.asType()));
+            });
+
     return builder.build();
   }
 
@@ -124,6 +142,7 @@ public record GenerateResultSetMapperImpl(
     item.fields()
         .forEach(
             it -> {
+              var policy = CodeUtility.getColumnPolicy(it, item.typeMirror());
               if (Objects.isNull(it.getAnnotation(Cursor.class))) {
                 builder.addStatement(
                     /*template is "%s.%s(%s)"*/
@@ -159,7 +178,7 @@ public record GenerateResultSetMapperImpl(
                         .append(".getObject($S)))")
                         .toString(),
                     ResultSet.class,
-                    CodeUtility.getColumnName(it));
+                    CodeUtility.getColumnName(it, policy));
                 return;
               }
               builder.addStatement(
@@ -175,7 +194,7 @@ public record GenerateResultSetMapperImpl(
                       .append(".getObject($S)))")
                       .toString(),
                   ResultSet.class,
-                  CodeUtility.getColumnName(it));
+                  CodeUtility.getColumnName(it, policy));
             });
     return builder.build();
   }
@@ -186,6 +205,8 @@ public record GenerateResultSetMapperImpl(
     IntStream.range(0, item.fields().size())
         .forEach(
             index -> {
+              var policy = CodeUtility.getColumnPolicy(item.fields().get(index), item.typeMirror());
+
               var postfix = index == item.fields().size() - 1 ? ");" : ",";
               var extractPostfix =
                   "("
@@ -212,14 +233,14 @@ public record GenerateResultSetMapperImpl(
                     /*template is "%s(%s, ($T) %s.getObject($S))%s\n"*/
                     GeneralConstantUtility.EXTRACT_RESULT_SET_MAPPER + extractPostfix,
                     ResultSet.class,
-                    CodeUtility.getColumnName(item.fields().get(index)));
+                    CodeUtility.getColumnName(item.fields().get(index), policy));
                 return;
               }
               builder.add(
                   /*template is "%s(%s, ($T) %s.getObject($S))%s\n"*/
                   GeneralConstantUtility.EXTRACT_RESULT_SET_MAPPER_ONE + extractPostfix,
                   ResultSet.class,
-                  CodeUtility.getColumnName(item.fields().get(index)));
+                  CodeUtility.getColumnName(item.fields().get(index), policy));
             });
     return builder.build();
   }

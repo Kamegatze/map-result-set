@@ -1,0 +1,3 @@
+insert into student_pascal_case(Id, FirstName, LastName, Patronymic, Birthdate) values (1, 'Al', 'Sh', 'Pv', date '1999-12-24');
+insert into student_pascal_case(Id, FirstName, LastName, Patronymic, Birthdate) values (2, 'fdsdasd', 'dwdadfsf', 'dadadad', date '2000-01-02');
+insert into student_pascal_case(Id, FirstName, LastName, Patronymic, Birthdate) values (3, 'fdfdffewa', 'yttyrter', 'dwghhyuug', date '2001-09-12');
