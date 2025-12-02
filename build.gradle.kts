@@ -68,5 +68,14 @@ tasks.test {
     }
 }
 
+tasks.test.configure {
+    finalizedBy(
+        project(":map-result-set-test-convention-global-camel-case").tasks.test,
+        project(":map-result-set-test-convention-global-pascal-case").tasks.test,
+        project(":map-result-set-test-convention-global-snake-case").tasks.test,
+        project(":map-result-set-test-convention-global-kebab-case").tasks.test
+    )
+}
+
 // Apply a specific Java toolchain to ease working on different environments.
 java { toolchain { languageVersion = JavaLanguageVersion.of(17) } }

@@ -1,8 +1,12 @@
-package io.github.kamegatze.map.result.set.processor.university.model;
+package io.github.kamegatze.map.result.set.convention.university.model;
 
+import io.github.kamegatze.map.result.set.ConventionFieldPolicy;
+import io.github.kamegatze.map.result.set.ConventionFieldPolicy.Policy;
 import java.time.LocalDate;
 
-public class StudentClass {
+@ConventionFieldPolicy(Policy.SNAKE_CASE)
+public final class StudentSnakeCase {
+
   private Long id;
 
   private String firstName;

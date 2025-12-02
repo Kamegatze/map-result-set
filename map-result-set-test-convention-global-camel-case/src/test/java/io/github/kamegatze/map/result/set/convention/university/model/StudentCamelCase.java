@@ -1,8 +1,8 @@
-package io.github.kamegatze.map.result.set.processor.university.model;
+package io.github.kamegatze.map.result.set.convention.university.model;
 
 import java.time.LocalDate;
 
-public class StudentClass {
+public final class StudentCamelCase {
   private Long id;
 
   private String firstName;

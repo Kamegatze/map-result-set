@@ -1,14 +1,13 @@
 package io.github.kamegatze.map.result.set.processor.university.model;
 
-import io.github.kamegatze.map.result.set.Column;
 import io.github.kamegatze.map.result.set.Cursor;
 import java.time.LocalDate;
 import java.util.List;
 
 public record StudentRecordNestedTwo(
     Long id,
-    @Column("first_name") String firstName,
-    @Column("last_name") String lastName,
+    String firstName,
+    String lastName,
     String patronymic,
     LocalDate birthdate,
-    @Cursor("subject") List<SubjectRecordNestedOne> subject) {}
+    @Cursor List<SubjectRecordNestedOne> subject) {}
