@@ -83,9 +83,7 @@ jreleaser {
     signing {
         active = Active.ALWAYS
         armored = true
-        mode = Signing.Mode.FILE
-        publicKey = "public.pgp"
-        secretKey = "private.pgp"
+        mode = Signing.Mode.MEMORY
     }
     deploy {
         maven {
