@@ -4,7 +4,10 @@
 [versions]
 javapoet-version = "0.7.0"
 slf4j-api-version = "2.0.17"
+org-jreleaser-version = "1.21.0"
 
 [libraries]
-javapoet = {module = "com.palantir.javapoet:javapoet", version.ref = "javapoet-version"}
-slf4j-api = {module = "org.slf4j:slf4j-api", version.ref = "slf4j-api-version"}
+javapoet = { module = "com.palantir.javapoet:javapoet", version.ref = "javapoet-version" }
+
+[plugins]
+org-jreleaser = { id = "org.jreleaser", version.ref = "org-jreleaser-version" }
