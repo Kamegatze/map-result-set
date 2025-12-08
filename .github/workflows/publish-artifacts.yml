@@ -1,0 +1,55 @@
+name: Publish artifacts
+on:
+  workflow_dispatch:
+jobs:
+  checkstyle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v5
+      - name: checkstyle
+        run: ./gradlew spotlessCheck
+  tests:
+    runs-on: ubuntu-latest
+    needs: checkstyle
+    steps:
+      - uses: actions/checkout@v5
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      - name: Setup Testcontainers Cloud Client
+        uses: atomicjar/testcontainers-cloud-setup-action@v1
+        with:
+          token: ${{ secrets.TC_CLOUD_TOKEN }}
+      - name: Run test
+        run: ./gradlew test --info
+  publish:
+    needs:
+      - checkstyle
+      - tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: 'temurin'
+      - name: Publish to artifacts
+        env:
+          JRELEASER_GPG_PASSPHRASE: ${{secrets.PASSPHRASE_GPG}}
+          JRELEASER_GPG_PUBLIC_KEY: ${{secrets.PUBLIC_GPG_KEY}}
+          JRELEASER_GPG_SECRET_KEY: ${{secrets.PRIVATE_GPG_KEY}}
+          JRELEASER_NEXUS2_USERNAME: ${{secrets.MAVEN_CENTRAL_USERNAME}}
+          JRELEASER_NEXUS2_PASSWORD: ${{secrets.MAVEN_CENTRAL_PASSWORD}}
+          JRELEASER_MAVENCENTRAL_USERNAME: ${{secrets.MAVEN_CENTRAL_USERNAME}}
+          JRELEASER_MAVENCENTRAL_PASSWORD: ${{secrets.MAVEN_CENTRAL_PASSWORD}}
+        run: ./gradlew :map-result-set-app:publish :map-result-set-app:jreleaserDeploy --no-configuration-cache --info

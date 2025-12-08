@@ -1,0 +1,25 @@
+package io.github.kamegatze.map.result.set.processor.university.mapper;
+
+import io.github.kamegatze.map.result.set.MapResultSet;
+import io.github.kamegatze.map.result.set.processor.ResultSetMapper;
+import io.github.kamegatze.map.result.set.processor.university.model.StudentClass;
+import java.sql.ResultSet;
+import java.util.List;
+import java.util.Optional;
+import org.springframework.jdbc.core.RowMapper;
+
+@MapResultSet
+public interface StudentClassMapper {
+
+  default RowMapper<StudentClass> getRowMapper() {
+    return (rs, rowNum) -> getResultSetMapper().mapRow(rs, rowNum);
+  }
+
+  ResultSetMapper<StudentClass> getResultSetMapper();
+
+  StudentClass getStudentClass(ResultSet rs);
+
+  Optional<StudentClass> getOptionalStudentClass(ResultSet resultSet);
+
+  List<StudentClass> getStudentsClass(ResultSet resultSet);
+}
