@@ -1,0 +1,17 @@
+[versions]
+kotlin-version = "2.4.20"
+testcontainer-version = "2.0.5"
+oracle-version = "23.9.0.25.07"
+mysql-version = "9.4.0"
+postgresql-version = "42.7.7"
+
+[libraries]
+kotlin-gradle-plugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin-version"}
+testcontainer-postgresql = { module = "org.testcontainers:testcontainers-postgresql", version.ref = "testcontainer-version" }
+testcontainer-oracle-free = { module = "org.testcontainers:testcontainers-oracle-free", version.ref = "testcontainer-version" }
+testcontainer-mysql = { module = "org.testcontainers:testcontainers-mysql", version.ref = "testcontainer-version" }
+postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql-version" }
+ojdbc = { module = "com.oracle.database.jdbc:ojdbc17", version.ref = "oracle-version" }
+mysql = { module = "com.mysql:mysql-connector-j", version.ref = "mysql-version" }
+
+

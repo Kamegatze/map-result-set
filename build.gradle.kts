@@ -13,6 +13,7 @@ plugins {
     // Apply the java-library plugin for API and implementation separation.
     java
     alias(libs.plugins.spotless)
+    alias(libs.plugins.test.container.runner.with.test)
 }
 
 spotless {
@@ -66,14 +67,6 @@ tasks.test {
     testLogging {
         events.addAll(listOf(TestLogEvent.PASSED, TestLogEvent.SKIPPED, TestLogEvent.FAILED))
     }
-}
-
-tasks.test.configure {
-    finalizedBy(
-        project(":map-result-set-test-convention-global-camel-case").tasks.test,
-        project(":map-result-set-test-convention-global-pascal-case").tasks.test,
-        project(":map-result-set-test-convention-global-snake-case").tasks.test,
-    )
 }
 
 // Apply a specific Java toolchain to ease working on different environments.

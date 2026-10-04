@@ -13,14 +13,8 @@ import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.oracle.OracleContainer;
 
-@Testcontainers
 class ConventionFieldPolicyOracleTest {
-  @Container
-  static OracleContainer oracle = new OracleContainer("gvenzl/oracle-free:slim-faststart");
 
   static JdbcTemplate jdbcTemplate;
   static DataSource dataSource;
@@ -28,16 +22,20 @@ class ConventionFieldPolicyOracleTest {
   @BeforeAll
   static void setUp() throws SQLException {
     var datasource = new OracleDataSource();
-    datasource.setUser(oracle.getUsername());
-    datasource.setPassword(oracle.getPassword());
-    datasource.setURL(oracle.getJdbcUrl());
+    datasource.setUser(System.getenv("ORACLE_USERNAME"));
+    datasource.setPassword(System.getenv("ORACLE_PASSWORD"));
+    datasource.setURL(System.getenv("ORACLE_JDBC_URL"));
     dataSource = datasource;
 
-    Flyway.configure()
-        .locations("classpath:db/migration/oracle")
-        .dataSource(datasource)
-        .load()
-        .migrate();
+    var flyway =
+        Flyway.configure()
+            .locations("classpath:db/migration/oracle")
+            .dataSource(datasource)
+            .cleanDisabled(false)
+            .load();
+
+    flyway.clean();
+    flyway.migrate();
 
     jdbcTemplate = new JdbcTemplate(datasource);
   }

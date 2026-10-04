@@ -12,14 +12,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.postgresql.ds.PGSimpleDataSource;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.postgresql.PostgreSQLContainer;
 
-@Testcontainers
 class ConventionFieldPolicyPostgresTest {
-
-  @Container static PostgreSQLContainer container = new PostgreSQLContainer("postgres:16-alpine");
 
   static JdbcTemplate jdbcTemplate;
 
@@ -28,17 +22,21 @@ class ConventionFieldPolicyPostgresTest {
   @BeforeAll
   static void setUp() {
     var datasource = new PGSimpleDataSource();
-    datasource.setUrl(container.getJdbcUrl());
-    datasource.setUser(container.getUsername());
-    datasource.setPassword(container.getPassword());
+    datasource.setUrl(System.getenv("POSTGRESQL_JDBC_URL"));
+    datasource.setUser(System.getenv("POSTGRESQL_USERNAME"));
+    datasource.setPassword(System.getenv("POSTGRESQL_PASSWORD"));
 
     dataSource = datasource;
 
-    Flyway.configure()
-        .locations("classpath:db/migration/postgres")
-        .dataSource(datasource)
-        .load()
-        .migrate();
+    var flyway =
+        Flyway.configure()
+            .locations("classpath:db/migration/postgres")
+            .dataSource(datasource)
+            .cleanDisabled(false)
+            .load();
+
+    flyway.clean();
+    flyway.migrate();
 
     jdbcTemplate = new JdbcTemplate(dataSource);
   }

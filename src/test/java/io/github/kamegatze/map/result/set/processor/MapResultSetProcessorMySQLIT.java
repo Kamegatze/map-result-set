@@ -19,14 +19,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.mysql.MySQLContainer;
 
-@Testcontainers
 class MapResultSetProcessorMySQLIT {
-
-  @Container static MySQLContainer mysql = new MySQLContainer("mysql:8.0.36");
 
   static JdbcTemplate jdbcTemplate;
   static DataSource dataSource;
@@ -35,17 +29,21 @@ class MapResultSetProcessorMySQLIT {
   static void setUp() {
     var datasource = new MysqlDataSource();
 
-    datasource.setUser(mysql.getUsername());
-    datasource.setPassword(mysql.getPassword());
-    datasource.setUrl(mysql.getJdbcUrl());
+    datasource.setUser(System.getenv("MYSQL_USERNAME"));
+    datasource.setPassword(System.getenv("MYSQL_PASSWORD"));
+    datasource.setUrl(System.getenv("MYSQL_JDBC_URL"));
 
     dataSource = datasource;
 
-    Flyway.configure()
-        .locations("classpath:db/migration/mysql")
-        .dataSource(datasource)
-        .load()
-        .migrate();
+    var flyway =
+        Flyway.configure()
+            .locations("classpath:db/migration/mysql")
+            .dataSource(datasource)
+            .cleanDisabled(false)
+            .load();
+
+    flyway.clean();
+    flyway.migrate();
 
     jdbcTemplate = new JdbcTemplate(datasource);
   }

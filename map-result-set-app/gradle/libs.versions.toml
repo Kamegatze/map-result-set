@@ -3,7 +3,6 @@
 
 [versions]
 javapoet-version = "0.7.0"
-slf4j-api-version = "2.0.17"
 org-jreleaser-version = "1.21.0"
 
 [libraries]
