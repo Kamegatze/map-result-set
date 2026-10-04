@@ -13,6 +13,7 @@ plugins {
     // Apply the java-library plugin for API and implementation separation.
     java
     alias(libs.plugins.spotless)
+    alias(libs.plugins.test.container.runner.with.test)
 }
 
 spotless {

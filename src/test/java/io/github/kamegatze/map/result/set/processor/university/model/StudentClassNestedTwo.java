@@ -1,6 +1,5 @@
 package io.github.kamegatze.map.result.set.processor.university.model;
 
-import io.github.kamegatze.map.result.set.Column;
 import io.github.kamegatze.map.result.set.Cursor;
 import java.time.LocalDate;
 import java.util.List;
@@ -8,17 +7,14 @@ import java.util.List;
 public class StudentClassNestedTwo {
   private Long id;
 
-  @Column("first_name")
   private String firstName;
 
-  @Column("last_name")
   private String lastName;
 
   private String patronymic;
   private LocalDate birthdate;
 
-  @Cursor("subject")
-  List<SubjectClassNestedOne> subject;
+  @Cursor List<SubjectClassNestedOne> subject;
 
   public Long getId() {
     return id;
