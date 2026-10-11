@@ -11,18 +11,24 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import javax.annotation.processing.ProcessingEnvironment;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.PackageElement;
+import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
+import javax.lang.model.util.Elements;
+import javax.lang.model.util.Types;
 
 public final class CodeUtility {
 
   private CodeUtility() {}
 
   public static Optional<TypeMirror> getOneGeneric(TypeMirror typeMirror) {
-    if (typeMirror instanceof DeclaredType declaredType) {
-      var generics = declaredType.getTypeArguments();
+    if (typeMirror instanceof DeclaredType) {
+      DeclaredType declaredType = (DeclaredType) typeMirror;
+      List<? extends TypeMirror> generics = declaredType.getTypeArguments();
       if (generics.size() > 1) {
         throw new MoreThenOneItemException("Generic type more then one item");
       }
@@ -41,39 +47,43 @@ public final class CodeUtility {
 
   public static List<VariableElement> getFieldsName(
       TypeMirror typeMirror, ProcessingEnvironment processingEnvironment) {
-    var elementsUtils = processingEnvironment.getElementUtils();
-    var typesUtils = processingEnvironment.getTypeUtils();
+    Elements elementsUtils = processingEnvironment.getElementUtils();
+    Types typesUtils = processingEnvironment.getTypeUtils();
 
-    var element = typesUtils.asElement(typeMirror);
-    var packageName = elementsUtils.getPackageOf(element);
+    Element element = typesUtils.asElement(typeMirror);
+    PackageElement packageName = elementsUtils.getPackageOf(element);
 
-    var typeElement =
+    TypeElement typeElement =
         elementsUtils.getTypeElement(
-            packageName.getQualifiedName().toString() + "." + element.getSimpleName().toString());
+            packageName.getQualifiedName() + "." + element.getSimpleName());
 
     return ElementFilter.fieldsIn(
         processingEnvironment.getElementUtils().getAllMembers(typeElement));
   }
 
   public static String getColumnName(VariableElement variableElement, Policy policy) {
-    var column = variableElement.getAnnotation(Column.class);
+    Column column = variableElement.getAnnotation(Column.class);
     if (Objects.nonNull(column)) {
       return column.value();
     }
-    var cursor = variableElement.getAnnotation(Cursor.class);
-    if (Objects.nonNull(cursor) && !cursor.value().isBlank()) {
+    Cursor cursor = variableElement.getAnnotation(Cursor.class);
+    if (Objects.nonNull(cursor) && !cursor.value().isEmpty()) {
       return cursor.value();
     }
     return getColumnNameByConventionField(variableElement.getSimpleName().toString(), policy);
   }
 
   public static String generateSetMethodName(String fieldName) {
-    var fieldNameCopy = fieldName.startsWith("is") ? fieldName.substring(2) : fieldName;
+    String fieldNameCopy = fieldName.startsWith("is") ? fieldName.substring(2) : fieldName;
     return "set" + fieldNameCopy.substring(0, 1).toUpperCase() + fieldNameCopy.substring(1);
   }
 
+  public static Element getElementFromTypeMirror(TypeMirror typeMirror) {
+    return Context.get(ProcessingEnvironment.class).getTypeUtils().asElement(typeMirror);
+  }
+
   public static Policy getColumnPolicy(VariableElement variableElement, TypeMirror entityType) {
-    var annotation = variableElement.getAnnotation(ConventionFieldPolicy.class);
+    ConventionFieldPolicy annotation = variableElement.getAnnotation(ConventionFieldPolicy.class);
     if (Objects.nonNull(annotation)) {
       return annotation.value();
     }
@@ -85,11 +95,16 @@ public final class CodeUtility {
   }
 
   private static String getColumnNameByConventionField(String fieldName, Policy policy) {
-    return switch (policy) {
-      case CAMEL_CASE -> getCamelCaseFieldName(fieldName);
-      case PASCAL_CASE -> getPascalCaseFieldName(fieldName);
-      case SNAKE_CASE -> getSnakeCaseFieldName(fieldName);
-    };
+    switch (policy) {
+      case CAMEL_CASE:
+        return getCamelCaseFieldName(fieldName);
+      case PASCAL_CASE:
+        return getPascalCaseFieldName(fieldName);
+      case SNAKE_CASE:
+        return getSnakeCaseFieldName(fieldName);
+      default:
+        throw new IllegalArgumentException(String.format("Not support policy: %s", policy));
+    }
   }
 
   private static String getSnakeCaseFieldName(String fieldName) {
@@ -117,7 +132,7 @@ public final class CodeUtility {
       return fieldName;
     }
 
-    var result = fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
+    String result = fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
 
     if (isCamelCase(fieldName)) {
       return result;
@@ -155,7 +170,7 @@ public final class CodeUtility {
       return "";
     }
 
-    var result = fieldName.substring(0, 1).toLowerCase() + fieldName.substring(1);
+    String result = fieldName.substring(0, 1).toLowerCase() + fieldName.substring(1);
     for (int i = 0; i < fieldName.length(); i++) {
       if (Character.isUpperCase(fieldName.charAt(i))) {
         result = fieldName.substring(0, i) + splitCharacter + fieldName.substring(i).toLowerCase();
@@ -169,7 +184,7 @@ public final class CodeUtility {
       return "";
     }
 
-    var result = fieldName;
+    String result = fieldName;
     for (int i = 0; i <= fieldName.length(); i++) {
       if (fieldName.charAt(i) == splitCharacter) {
         result =
@@ -183,7 +198,6 @@ public final class CodeUtility {
 
   private static boolean isSnakeCase(String fieldName) {
     return Objects.nonNull(fieldName)
-        && !fieldName.isBlank()
         && fieldName.contains("_")
         && fieldName.toLowerCase().equals(fieldName);
   }
@@ -192,7 +206,7 @@ public final class CodeUtility {
     if (Objects.isNull(fieldName)) {
       return false;
     }
-    if (fieldName.isBlank()) {
+    if (fieldName.isEmpty()) {
       return false;
     }
 
@@ -211,7 +225,7 @@ public final class CodeUtility {
       return false;
     }
 
-    if (fieldName.isBlank()) {
+    if (fieldName.isEmpty()) {
       return false;
     }
 

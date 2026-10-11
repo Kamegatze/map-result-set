@@ -7,17 +7,17 @@ import javax.annotation.processing.ProcessingEnvironment;
 public final class LoggerFactory {
   private LoggerFactory() {}
 
-  public static System.Logger create(String loggerName) {
-    var level =
-        System.Logger.Level.valueOf(
+  public static Logger create(String loggerName) {
+    Level level =
+        Level.valueOf(
             System.getProperty(
-                    GeneralConstantUtility.LOGGING_LEVEL_KEY, System.Logger.Level.WARNING.getName())
+                    GeneralConstantUtility.LOGGING_LEVEL_KEY, Level.WARNING.name())
                 .toUpperCase());
-    return new LoggerAnnotationPrecessing(
+    return new LoggerImpl(
         loggerName, level, Context.get(ProcessingEnvironment.class));
   }
 
-  public static System.Logger create(Class<?> clazz) {
+  public static Logger create(Class<?> clazz) {
     return create(clazz.getName());
   }
 }

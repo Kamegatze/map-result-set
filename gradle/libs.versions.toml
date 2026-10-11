@@ -1,7 +1,7 @@
 [versions]
 spotless-version = "7.0.4"
 junit-version = "5.13.0"
-spring-jdbc-version = "6.2.11"
+spring-jdbc-version = "5.3.39"
 testcontainer-version = "2.0.2"
 postgresql-version = "42.7.7"
 flyway-version = "11.10.1"
@@ -12,7 +12,7 @@ logback-classic-version = "1.5.19"
 
 [libraries]
 spring-jdbc = { module = "org.springframework:spring-jdbc", version.ref = "spring-jdbc-version" }
-map-result-set = { module = "io.github.kamegatze:map-result-set-app" }
+map-result-set = { module = "io.github.kamegatze:map-result-set-app-java17" }
 
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit-version" }
 junit-bom = { module = "org.junit:junit-bom", version.ref = "junit-version" }

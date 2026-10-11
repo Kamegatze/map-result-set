@@ -35,7 +35,7 @@ dependencies { api(libs.javapoet) }
 java {
     withJavadocJar()
     withSourcesJar()
-    toolchain { languageVersion = JavaLanguageVersion.of(17) }
+    toolchain { languageVersion = JavaLanguageVersion.of(8) }
 }
 
 publishing {

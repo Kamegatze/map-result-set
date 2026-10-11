@@ -1,6 +1,7 @@
 package io.github.kamegatze.map.result.set;
 
 import io.github.kamegatze.map.result.set.ConventionFieldPolicy.Policy;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;

@@ -1,41 +1,43 @@
 package io.github.kamegatze.map.result.set.processor.impl;
 
-import com.palantir.javapoet.ClassName;
-import com.palantir.javapoet.CodeBlock;
-import com.palantir.javapoet.ParameterizedTypeName;
-import com.palantir.javapoet.TypeName;
+import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.CodeBlock;
+import com.squareup.javapoet.ParameterizedTypeName;
+import com.squareup.javapoet.TypeName;
+import io.github.kamegatze.map.result.set.ConventionFieldPolicy;
 import io.github.kamegatze.map.result.set.Cursor;
+import io.github.kamegatze.map.result.set.logger.Logger;
 import io.github.kamegatze.map.result.set.logger.LoggerFactory;
 import io.github.kamegatze.map.result.set.processor.ClassTree;
+import io.github.kamegatze.map.result.set.processor.GenerateNewObject;
 import io.github.kamegatze.map.result.set.processor.GenerateResultSetMapper;
 import io.github.kamegatze.map.result.set.processor.ResultSetMapper;
+import io.github.kamegatze.map.result.set.processor.exception.IllegalArgumentException;
 import io.github.kamegatze.map.result.set.processor.utilities.CodeUtility;
 import io.github.kamegatze.map.result.set.processor.utilities.GeneralConstantUtility;
-import java.lang.System.Logger;
-import java.lang.System.Logger.Level;
-import java.sql.ResultSet;
 import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.Map;
 import java.util.Objects;
-import java.util.stream.IntStream;
-import javax.annotation.processing.ProcessingEnvironment;
+import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.type.TypeMirror;
 
 public final class GenerateResultSetMapperImpl implements GenerateResultSetMapper {
 
-  private final ProcessingEnvironment processingEnvironment;
+  private final Map<ElementKind, GenerateNewObject> generateNewObjectMap;
 
   private final Logger log;
 
-  public GenerateResultSetMapperImpl(ProcessingEnvironment processingEnvironment) {
-    this.processingEnvironment = processingEnvironment;
+  public GenerateResultSetMapperImpl(Map<ElementKind, GenerateNewObject> generateNewObjectMap) {
+    this.generateNewObjectMap = generateNewObjectMap;
     log = LoggerFactory.create(GenerateResultSetMapperImpl.class);
   }
 
   @Override
   public CodeBlock generate(ClassTree root) {
-    var builder = CodeBlock.builder();
-    var stack = new ArrayDeque<>(root.children());
+    CodeBlock.Builder builder = CodeBlock.builder();
+    Deque<ClassTree> stack = new ArrayDeque<>(root.children());
 
     builder.add(
         /*template is "$T %s = (%s, rowNum) ->{\n"*/
@@ -56,9 +58,9 @@ public final class GenerateResultSetMapperImpl implements GenerateResultSetMappe
 
     while (!stack.isEmpty()) {
       if (stack.getLast().children().isEmpty()) {
-        var item = stack.pollLast();
+        ClassTree item = stack.pollLast();
 
-        var typeMirror =
+        TypeMirror typeMirror =
             CodeUtility.getOneGeneric(Objects.requireNonNull(item).typeMirror())
                 .orElse(item.typeMirror());
 
@@ -104,21 +106,20 @@ public final class GenerateResultSetMapperImpl implements GenerateResultSetMappe
   }
 
   private CodeBlock createFields(ClassTree item, String nameResultSet) {
-    var builder = CodeBlock.builder();
+    CodeBlock.Builder builder = CodeBlock.builder();
     item.fields().stream()
         .filter(it -> Objects.isNull(it.getAnnotation(Cursor.class)))
         .forEach(
             it -> {
-              var policy = CodeUtility.getColumnPolicy(it, item.typeMirror());
-              log.log(
-                  Level.INFO,
+              ConventionFieldPolicy.Policy policy =
+                  CodeUtility.getColumnPolicy(it, item.typeMirror());
+              log.info(
                   "column policy for type: {0} is policy: {1} is field: {2}",
-                  item.typeMirror(),
-                  policy,
-                  it.getSimpleName());
+                  item.typeMirror(), policy, it.getSimpleName());
               builder.addStatement(
                   /*template is "var %s = %s.getObject($S, $T.class)"*/
-                  "var " + it + item.uuid() + " = " + nameResultSet + ".getObject($S, $T.class)",
+                  "$T " + it + item.uuid() + " = " + nameResultSet + ".getObject($S, $T.class)",
+                  TypeName.get(it.asType()),
                   CodeUtility.getColumnName(it, policy),
                   TypeName.get(it.asType()));
             });
@@ -127,121 +128,17 @@ public final class GenerateResultSetMapperImpl implements GenerateResultSetMappe
   }
 
   private CodeBlock createNewObject(ClassTree item, String resultSetName) {
-    var typeMirror = CodeUtility.getOneGeneric(item.typeMirror()).orElse(item.typeMirror());
-    if (ElementKind.RECORD.equals(
-        processingEnvironment.getTypeUtils().asElement(typeMirror).getKind())) {
-      return createNewRecord(item, typeMirror, resultSetName);
+    TypeMirror typeMirror = CodeUtility.getOneGeneric(item.typeMirror()).orElse(item.typeMirror());
+    Element element = CodeUtility.getElementFromTypeMirror(typeMirror);
+    ElementKind elementKind = element.getKind();
+    GenerateNewObject generateNewObject = generateNewObjectMap.get(elementKind);
+    if (Objects.isNull(generateNewObject)) {
+      throw new IllegalArgumentException(
+          String.format(
+              "Not found support %s because support only %s",
+              ElementKind.class, generateNewObjectMap.keySet()),
+          element);
     }
-    return createNewClass(item, typeMirror, resultSetName);
-  }
-
-  private CodeBlock createNewClass(ClassTree item, TypeMirror typeMirror, String resultSetName) {
-    var builder = CodeBlock.builder();
-    builder.addStatement(
-        "var " + item.name() + item.uuid() + " = new $T()", TypeName.get(typeMirror));
-    item.fields()
-        .forEach(
-            it -> {
-              var policy = CodeUtility.getColumnPolicy(it, item.typeMirror());
-              if (Objects.isNull(it.getAnnotation(Cursor.class))) {
-                builder.addStatement(
-                    /*template is "%s.%s(%s)"*/
-                    item.name()
-                        + item.uuid()
-                        + "."
-                        + CodeUtility.generateSetMethodName(it.toString())
-                        + "("
-                        + it.getSimpleName().toString()
-                        + item.uuid()
-                        + ")");
-                return;
-              }
-              var genericOption = CodeUtility.getOneGeneric(it.asType());
-              var prefixBuilder =
-                  new StringBuilder()
-                      .append(item.name())
-                      .append(item.uuid())
-                      .append(".")
-                      .append(CodeUtility.generateSetMethodName(it.toString()))
-                      .append("(");
-
-              if (genericOption.isPresent()) {
-                builder.addStatement(
-                    /*template is "%s.%s(%s(%s, ($T) %s.getObject($S)))"*/
-                    prefixBuilder
-                        .append(GeneralConstantUtility.EXTRACT_RESULT_SET_MAPPER)
-                        .append("(")
-                        .append(it.getSimpleName().toString())
-                        .append(item.uuid())
-                        .append(",($T) ")
-                        .append(resultSetName)
-                        .append(".getObject($S)))")
-                        .toString(),
-                    ResultSet.class,
-                    CodeUtility.getColumnName(it, policy));
-                return;
-              }
-              builder.addStatement(
-                  /*template is "%s.%s(%s(%s, ($T) %s.getObject($S)))"*/
-                  prefixBuilder
-                      .append(GeneralConstantUtility.EXTRACT_RESULT_SET_MAPPER_ONE)
-                      .append("(")
-                      .append(it.getSimpleName().toString())
-                      .append(item.uuid())
-                      .append(",")
-                      .append("($T) ")
-                      .append(resultSetName)
-                      .append(".getObject($S)))")
-                      .toString(),
-                  ResultSet.class,
-                  CodeUtility.getColumnName(it, policy));
-            });
-    return builder.build();
-  }
-
-  private CodeBlock createNewRecord(ClassTree item, TypeMirror typeMirror, String resultSetName) {
-    var builder = CodeBlock.builder();
-    builder.add("var " + item.name() + item.uuid() + " = new $T(\n", TypeName.get(typeMirror));
-    IntStream.range(0, item.fields().size())
-        .forEach(
-            index -> {
-              var policy = CodeUtility.getColumnPolicy(item.fields().get(index), item.typeMirror());
-
-              var postfix = index == item.fields().size() - 1 ? ");" : ",";
-              var extractPostfix =
-                  "("
-                      + item.fields().get(index).getSimpleName().toString()
-                      + item.uuid()
-                      + ", ($T) "
-                      + resultSetName
-                      + ".getObject($S))"
-                      + postfix
-                      + "\n";
-
-              var genericOption = CodeUtility.getOneGeneric(item.fields().get(index).asType());
-
-              if (Objects.isNull(item.fields().get(index).getAnnotation(Cursor.class))) {
-                builder.add(
-                    item.fields().get(index).getSimpleName().toString()
-                        + item.uuid()
-                        + postfix
-                        + "\n");
-                return;
-              }
-              if (genericOption.isPresent()) {
-                builder.add(
-                    /*template is "%s(%s, ($T) %s.getObject($S))%s\n"*/
-                    GeneralConstantUtility.EXTRACT_RESULT_SET_MAPPER + extractPostfix,
-                    ResultSet.class,
-                    CodeUtility.getColumnName(item.fields().get(index), policy));
-                return;
-              }
-              builder.add(
-                  /*template is "%s(%s, ($T) %s.getObject($S))%s\n"*/
-                  GeneralConstantUtility.EXTRACT_RESULT_SET_MAPPER_ONE + extractPostfix,
-                  ResultSet.class,
-                  CodeUtility.getColumnName(item.fields().get(index), policy));
-            });
-    return builder.build();
+    return generateNewObject.createNew(item, typeMirror, resultSetName);
   }
 }

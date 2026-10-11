@@ -1,0 +1,2 @@
+[libraries]
+map-result-set = { module = "io.github.kamegatze:map-result-set-app" }

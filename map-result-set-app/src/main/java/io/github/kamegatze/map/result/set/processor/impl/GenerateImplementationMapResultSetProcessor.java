@@ -1,6 +1,8 @@
 package io.github.kamegatze.map.result.set.processor.impl;
 
+import com.squareup.javapoet.JavaFile;
 import io.github.kamegatze.map.result.set.MapResultSet;
+import io.github.kamegatze.map.result.set.logger.Logger;
 import io.github.kamegatze.map.result.set.logger.LoggerFactory;
 import io.github.kamegatze.map.result.set.processor.GenerateImplementationMapResultSetService;
 import io.github.kamegatze.map.result.set.processor.Processor;
@@ -10,7 +12,7 @@ public final class GenerateImplementationMapResultSetProcessor implements Proces
   private final GenerateImplementationMapResultSetService generateImplementationMapResultSetService;
   private final RoundEnvironment roundEnv;
 
-  private final System.Logger log;
+  private final Logger log;
 
   public GenerateImplementationMapResultSetProcessor(
       GenerateImplementationMapResultSetService generateImplementationMapResultSetService,
@@ -26,15 +28,12 @@ public final class GenerateImplementationMapResultSetProcessor implements Proces
         .getElementsAnnotatedWith(MapResultSet.class)
         .forEach(
             it -> {
-              log.log(System.Logger.Level.INFO, "Generate implementation for {0}", it.asType());
-              var javaFile = generateImplementationMapResultSetService.generate(it);
-              log.log(
-                  System.Logger.Level.INFO,
-                  "Write file by package: {0}",
-                  javaFile.toJavaFileObject().getName());
-              log.log(System.Logger.Level.DEBUG, "Content writing in java file: {0}", javaFile);
-              generateImplementationMapResultSetService.write(javaFile);
-              log.log(System.Logger.Level.INFO, "Write success");
+              log.info("Generate implementation for {0}", it.asType());
+              JavaFile javaFile = generateImplementationMapResultSetService.generate(it);
+              log.info("Write file by package: {0}", javaFile.toJavaFileObject().getName());
+              log.debug("Content writing in java file: {0}", javaFile);
+              generateImplementationMapResultSetService.write(javaFile, it);
+              log.info("Write success");
             });
     return true;
   }

@@ -2,6 +2,8 @@ rootProject.name = "map-result-set"
 
 includeBuild("map-result-set-app")
 
+includeBuild("map-result-set-app-java17")
+
 pluginManagement {
     includeBuild("test-container-runner-with-test")
     repositories {

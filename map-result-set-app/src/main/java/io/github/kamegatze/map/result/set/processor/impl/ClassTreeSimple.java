@@ -1,29 +1,74 @@
 package io.github.kamegatze.map.result.set.processor.impl;
 
 import io.github.kamegatze.map.result.set.processor.ClassTree;
+
 import java.util.List;
 import java.util.Objects;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
 
-record ClassTreeSimple(
-    String name,
-    String uuid,
-    TypeMirror typeMirror,
-    List<VariableElement> fields,
-    ClassTree parent,
-    List<ClassTree> children)
-    implements ClassTree {
+class ClassTreeSimple implements ClassTree {
+
+  private final String name;
+  private final String uuid;
+  private final TypeMirror typeMirror;
+  private final List<VariableElement> fields;
+  private final ClassTree parent;
+  private final List<ClassTree> children;
+
+  public ClassTreeSimple(
+      String name,
+      String uuid,
+      TypeMirror typeMirror,
+      List<VariableElement> fields,
+      ClassTree parent,
+      List<ClassTree> children) {
+    this.name = name;
+    this.uuid = uuid;
+    this.typeMirror = typeMirror;
+    this.fields = fields;
+    this.parent = parent;
+    this.children = children;
+  }
 
   @Override
-  @SuppressWarnings("NullableProblems")
+  public String name() {
+    return this.name;
+  }
+
+  @Override
+  public String uuid() {
+    return this.uuid;
+  }
+
+  @Override
+  public TypeMirror typeMirror() {
+    return this.typeMirror;
+  }
+
+  @Override
+  public ClassTree parent() {
+    return this.parent;
+  }
+
+  @Override
+  public List<ClassTree> children() {
+    return this.children;
+  }
+
+  @Override
+  public List<VariableElement> fields() {
+    return this.fields;
+  }
+
+  @Override
   public String toString() {
     return getStructTree().toString();
   }
 
   private StringBuilder getStructTree() {
-    var root = getRoot();
-    var builder = new StringBuilder();
+    ClassTree root = getRoot();
+    StringBuilder builder = new StringBuilder();
 
     mutateStructTree(builder, root);
 

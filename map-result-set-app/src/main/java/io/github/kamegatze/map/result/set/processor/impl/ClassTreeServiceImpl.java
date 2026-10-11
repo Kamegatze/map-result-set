@@ -5,22 +5,23 @@ import io.github.kamegatze.map.result.set.processor.ClassTree;
 import io.github.kamegatze.map.result.set.processor.ClassTreeService;
 import io.github.kamegatze.map.result.set.processor.utilities.CodeUtility;
 import io.github.kamegatze.map.result.set.processor.utilities.GeneralConstantUtility;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+
+import java.util.*;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
 
-public record ClassTreeServiceImpl(ProcessingEnvironment processingEnvironment)
-    implements ClassTreeService {
+public class ClassTreeServiceImpl implements ClassTreeService {
+  private final ProcessingEnvironment processingEnvironment;
+
+  public ClassTreeServiceImpl(ProcessingEnvironment processingEnvironment) {
+    this.processingEnvironment = processingEnvironment;
+  }
 
   @Override
   public ClassTree createTree(List<VariableElement> variableElements, TypeMirror rootType) {
-    var uuidRoot = UUID.randomUUID().toString().replace("-", "");
-    var root =
+    String uuidRoot = UUID.randomUUID().toString().replace("-", "");
+    ClassTree root =
         new ClassTreeSimple(
             GeneralConstantUtility.ROOT_VARIABLE_ROW_MAPPER,
             uuidRoot,
@@ -29,22 +30,22 @@ public record ClassTreeServiceImpl(ProcessingEnvironment processingEnvironment)
             null,
             new ArrayList<>());
 
-    var queue = new ArrayDeque<ClassTreeSimple>();
+    Deque<ClassTree> queue = new ArrayDeque<>();
     queue.add(root);
 
     while (!queue.isEmpty()) {
-      var item = queue.pollFirst();
+      ClassTree item = queue.pollFirst();
 
       item.fields().stream()
           .filter(it -> Objects.nonNull(it.getAnnotation(Cursor.class)))
           .forEach(
               it -> {
-                var fields =
+                List<VariableElement> fields =
                     CodeUtility.getFieldsName(
                         CodeUtility.getOneGeneric(it.asType()).orElse(it.asType()),
                         processingEnvironment);
-                var uuidItem = UUID.randomUUID().toString().replace("-", "");
-                var child =
+                String uuidItem = UUID.randomUUID().toString().replace("-", "");
+                ClassTree child =
                     new ClassTreeSimple(
                         it.toString(), uuidItem, it.asType(), fields, item, new ArrayList<>());
                 item.children().add(child);
