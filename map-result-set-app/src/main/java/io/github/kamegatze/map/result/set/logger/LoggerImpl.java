@@ -10,7 +10,6 @@ import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.Element;
-import javax.tools.Diagnostic;
 
 public final class LoggerImpl implements Logger {
 

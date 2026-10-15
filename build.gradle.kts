@@ -11,7 +11,9 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 
 plugins {
     // Apply the java-library plugin for API and implementation separation.
-    java; alias(libs.plugins.spotless); alias(libs.plugins.test.container.runner.with.test)
+    java
+    alias(libs.plugins.spotless)
+    alias(libs.plugins.test.container.runner.with.test)
 }
 
 spotless {
@@ -49,7 +51,6 @@ dependencies {
 
     testImplementation(libs.apache.commons.compress)
 
-    testImplementation(libs.bundles.testcontainer)
     testImplementation(libs.bundles.drivers)
     testImplementation(libs.bundles.flyway)
 

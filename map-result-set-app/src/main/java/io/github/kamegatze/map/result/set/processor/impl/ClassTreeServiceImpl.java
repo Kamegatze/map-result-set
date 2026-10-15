@@ -5,7 +5,6 @@ import io.github.kamegatze.map.result.set.processor.ClassTree;
 import io.github.kamegatze.map.result.set.processor.ClassTreeService;
 import io.github.kamegatze.map.result.set.processor.utilities.CodeUtility;
 import io.github.kamegatze.map.result.set.processor.utilities.GeneralConstantUtility;
-
 import java.util.*;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.VariableElement;

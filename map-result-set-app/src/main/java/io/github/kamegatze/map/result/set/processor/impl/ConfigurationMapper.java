@@ -2,18 +2,14 @@ package io.github.kamegatze.map.result.set.processor.impl;
 
 import io.github.kamegatze.map.result.set.ConventionFieldPolicy;
 import io.github.kamegatze.map.result.set.MapResultSetConfiguration;
-import io.github.kamegatze.map.result.set.MapResultSetInternalConfiguration;
 import io.github.kamegatze.map.result.set.processor.Configuration;
 import io.github.kamegatze.map.result.set.processor.Mapper;
-import io.github.kamegatze.map.result.set.processor.exception.MoreThenOneItemException;
 import io.github.kamegatze.map.result.set.processor.exception.MoreThenOneItemMapResultSetConfigurationException;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.Element;
 import javax.lang.model.type.TypeMirror;

@@ -6,12 +6,11 @@ import io.github.kamegatze.map.result.set.processor.ClassTree;
 import io.github.kamegatze.map.result.set.processor.GenerateNewObject;
 import io.github.kamegatze.map.result.set.processor.utilities.CodeUtility;
 import io.github.kamegatze.map.result.set.processor.utilities.GeneralConstantUtility;
-
-import javax.lang.model.element.ElementKind;
-import javax.lang.model.type.TypeMirror;
 import java.sql.ResultSet;
 import java.util.Objects;
 import java.util.stream.IntStream;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.type.TypeMirror;
 
 public final class GenerateNewObjectRecord implements GenerateNewObject {
   @Override

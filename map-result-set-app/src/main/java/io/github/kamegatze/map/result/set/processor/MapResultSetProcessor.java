@@ -5,8 +5,6 @@ import io.github.kamegatze.map.result.set.logger.Logger;
 import io.github.kamegatze.map.result.set.logger.LoggerFactory;
 import io.github.kamegatze.map.result.set.processor.exception.RegisterException;
 import io.github.kamegatze.map.result.set.processor.impl.*;
-
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
