@@ -3,13 +3,8 @@ package io.github.kamegatze.map.result.set.processor.impl;
 import io.github.kamegatze.map.result.set.ConventionFieldPolicy;
 import io.github.kamegatze.map.result.set.ConventionFieldPolicy.Policy;
 import io.github.kamegatze.map.result.set.MapResultSetConfiguration;
-import io.github.kamegatze.map.result.set.MapResultSetInternalConfiguration;
-import io.github.kamegatze.map.result.set.logger.Logger;
-import io.github.kamegatze.map.result.set.logger.LoggerFactory;
 import io.github.kamegatze.map.result.set.processor.Configuration;
 import io.github.kamegatze.map.result.set.processor.GenerateNewObject;
-
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;

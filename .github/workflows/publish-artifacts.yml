@@ -11,6 +11,7 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+          cache: 'gradle'
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v5
       - name: checkstyle
@@ -25,6 +26,7 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+          cache: 'gradle'
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v5
       - name: Setup Testcontainers Cloud Client
@@ -45,6 +47,7 @@ jobs:
         with:
           java-version: 17
           distribution: 'temurin'
+          cache: 'gradle'
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v5
       - name: Publish to artifacts

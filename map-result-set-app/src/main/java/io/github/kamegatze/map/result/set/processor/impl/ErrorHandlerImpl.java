@@ -4,7 +4,6 @@ import io.github.kamegatze.map.result.set.logger.Logger;
 import io.github.kamegatze.map.result.set.logger.LoggerFactory;
 import io.github.kamegatze.map.result.set.processor.ErrorHandler;
 import io.github.kamegatze.map.result.set.processor.exception.AnnotationProcessingException;
-
 import java.util.Objects;
 import java.util.concurrent.Callable;
 

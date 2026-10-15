@@ -9,9 +9,7 @@ version = "unspecified"
 
 repositories { mavenCentral() }
 
-dependencies {
-    api(libs.map.result.set)
-}
+dependencies { api(libs.map.result.set) }
 
 group = "io.github.kamegatze"
 

@@ -16,7 +16,6 @@ dependencies {
 
     testImplementation(libs.apache.commons.compress)
 
-    testImplementation(libs.bundles.testcontainer)
     testImplementation(libs.bundles.drivers)
     testImplementation(libs.bundles.flyway)
 

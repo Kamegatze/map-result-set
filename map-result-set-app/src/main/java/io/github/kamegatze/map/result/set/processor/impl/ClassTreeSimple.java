@@ -1,7 +1,6 @@
 package io.github.kamegatze.map.result.set.processor.impl;
 
 import io.github.kamegatze.map.result.set.processor.ClassTree;
-
 import java.util.List;
 import java.util.Objects;
 import javax.lang.model.element.VariableElement;

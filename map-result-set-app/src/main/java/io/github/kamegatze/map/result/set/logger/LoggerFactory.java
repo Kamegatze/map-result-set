@@ -10,11 +10,9 @@ public final class LoggerFactory {
   public static Logger create(String loggerName) {
     Level level =
         Level.valueOf(
-            System.getProperty(
-                    GeneralConstantUtility.LOGGING_LEVEL_KEY, Level.WARNING.name())
+            System.getProperty(GeneralConstantUtility.LOGGING_LEVEL_KEY, Level.WARNING.name())
                 .toUpperCase());
-    return new LoggerImpl(
-        loggerName, level, Context.get(ProcessingEnvironment.class));
+    return new LoggerImpl(loggerName, level, Context.get(ProcessingEnvironment.class));
   }
 
   public static Logger create(Class<?> clazz) {
