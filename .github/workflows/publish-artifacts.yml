@@ -59,4 +59,4 @@ jobs:
           JRELEASER_NEXUS2_PASSWORD: ${{secrets.MAVEN_CENTRAL_PASSWORD}}
           JRELEASER_MAVENCENTRAL_USERNAME: ${{secrets.MAVEN_CENTRAL_USERNAME}}
           JRELEASER_MAVENCENTRAL_PASSWORD: ${{secrets.MAVEN_CENTRAL_PASSWORD}}
-        run: ./gradlew :map-result-set-app:publish :map-result-set-app:jreleaserDeploy --no-configuration-cache --info
+        run: ./gradlew :map-result-set-java8:publish :map-result-set-java8:jreleaserDeploy :map-result-set-java17:publish :map-result-set-java17:jreleaserDeploy --no-configuration-cache --info --stacktrace

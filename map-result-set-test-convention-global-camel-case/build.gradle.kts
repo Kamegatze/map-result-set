@@ -9,7 +9,7 @@ repositories { mavenCentral() }
 dependencies {
     testImplementation(libs.spring.jdbc)
 
-    testImplementation(libs.map.result.set)
+    testImplementation(libs.map.result.set.java17)
 
     testImplementation(platform(libs.junit.bom))
     testImplementation(libs.junit.jupiter)
@@ -22,7 +22,7 @@ dependencies {
     testImplementation(libs.logback.classic)
 
     testRuntimeOnly(libs.junit.platform.launcher)
-    testAnnotationProcessor(libs.map.result.set)
+    testAnnotationProcessor(libs.map.result.set.java17)
     testAnnotationProcessor(libs.logback.classic)
 }
 

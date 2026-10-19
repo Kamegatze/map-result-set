@@ -19,9 +19,7 @@ plugins {
 
 group = "io.github.kamegatze"
 
-val artifact = "map-result-set"
-
-version = "0.0.1-SNAPSHOT"
+version = libs.versions.map.result.set.version.get()
 
 repositories {
     // Use Maven Central for resolving dependencies.
@@ -42,14 +40,16 @@ publishing {
     publications {
         create<MavenPublication>("mavenJava") {
             groupId = group.toString()
-            artifactId = artifact
+            artifactId = rootProject.name
             version = version.toString()
 
             from(components["java"])
 
             pom {
                 name.set("Map Result Set")
-                description.set("Mapping object database from ResultSet to custom java object")
+                description.set(
+                    "Mapping object database from ResultSet to custom java object on java 8"
+                )
                 url.set("https://github.com/Kamegatze/map-result-set")
                 inceptionYear.set("2025")
                 licenses {
