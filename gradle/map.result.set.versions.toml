@@ -1,6 +1,6 @@
 [versions]
 javapoet-version = "1.13.0"
-map-result-set-version = "0.0.1-SNAPSHOT"
+map-result-set-version = "0.1.0"
 org-jreleaser-version = "1.21.0"
 
 [libraries]
