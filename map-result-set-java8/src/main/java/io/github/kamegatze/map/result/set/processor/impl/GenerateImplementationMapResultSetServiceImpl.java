@@ -24,6 +24,7 @@ import io.github.kamegatze.map.result.set.processor.exception.UnsupportedTypeExc
 import io.github.kamegatze.map.result.set.processor.exception.WriteJavaFileException;
 import io.github.kamegatze.map.result.set.processor.utilities.CodeUtility;
 import io.github.kamegatze.map.result.set.processor.utilities.GeneralConstantUtility;
+import io.github.kamegatze.map.result.set.processor.utilities.JdbcUtility;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -114,6 +115,8 @@ public final class GenerateImplementationMapResultSetServiceImpl
             ParameterizedTypeName.get(ClassName.get(ResultSetMapper.class), generic),
             GeneralConstantUtility.EXTRACT_ARG_RESULT_SET_MAPPER)
         .addParameter(ResultSet.class, GeneralConstantUtility.EXTRACT_ARG_RESULT_SET)
+        .addParameter(boolean.class, GeneralConstantUtility.IS_CLOSE_RESULT_SET)
+        .beginControlFlow("try")
         .addStatement(
             "$T list = new $T()",
             ParameterizedTypeName.get(ClassName.get(List.class), generic),
@@ -129,6 +132,12 @@ public final class GenerateImplementationMapResultSetServiceImpl
                 + ".getRow()))")
         .endControlFlow()
         .addStatement("return list")
+        .nextControlFlow("finally")
+        .beginControlFlow("if($L)", GeneralConstantUtility.IS_CLOSE_RESULT_SET)
+        .addStatement(
+            "$T.close($L)", JdbcUtility.class, GeneralConstantUtility.EXTRACT_ARG_RESULT_SET)
+        .endControlFlow()
+        .endControlFlow()
         .returns(ParameterizedTypeName.get(ClassName.get(List.class), generic))
         .build();
   }
@@ -143,6 +152,7 @@ public final class GenerateImplementationMapResultSetServiceImpl
             ParameterizedTypeName.get(ClassName.get(ResultSetMapper.class), generic),
             GeneralConstantUtility.EXTRACT_ARG_RESULT_SET_MAPPER)
         .addParameter(ResultSet.class, GeneralConstantUtility.EXTRACT_ARG_RESULT_SET)
+        .addParameter(boolean.class, GeneralConstantUtility.IS_CLOSE_RESULT_SET)
         .addStatement(
             "$T list = "
                 + GeneralConstantUtility.EXTRACT_RESULT_SET_MAPPER
@@ -150,6 +160,8 @@ public final class GenerateImplementationMapResultSetServiceImpl
                 + GeneralConstantUtility.EXTRACT_ARG_RESULT_SET_MAPPER
                 + ", "
                 + GeneralConstantUtility.EXTRACT_ARG_RESULT_SET
+                + ", "
+                + GeneralConstantUtility.IS_CLOSE_RESULT_SET
                 + ")",
             ParameterizedTypeName.get(ClassName.get(List.class), generic))
         .beginControlFlow("if(list.isEmpty())")
@@ -288,6 +300,8 @@ public final class GenerateImplementationMapResultSetServiceImpl
                   + GeneralConstantUtility.ROOT_VARIABLE_ROW_MAPPER
                   + ", "
                   + nameVariableResultSet
+                  + ", "
+                  + false
                   + ").orElse(null)")
           .build();
     }
@@ -304,6 +318,8 @@ public final class GenerateImplementationMapResultSetServiceImpl
                   + GeneralConstantUtility.ROOT_VARIABLE_ROW_MAPPER
                   + ", "
                   + nameVariableResultSet
+                  + ", "
+                  + false
                   + "))",
               List.class)
           .build();
@@ -318,6 +334,8 @@ public final class GenerateImplementationMapResultSetServiceImpl
                   + GeneralConstantUtility.ROOT_VARIABLE_ROW_MAPPER
                   + ", "
                   + nameVariableResultSet
+                  + ", "
+                  + false
                   + "))",
               Set.class)
           .build();
@@ -332,6 +350,8 @@ public final class GenerateImplementationMapResultSetServiceImpl
                   + GeneralConstantUtility.ROOT_VARIABLE_ROW_MAPPER
                   + ", "
                   + nameVariableResultSet
+                  + ", "
+                  + false
                   + ")")
           .build();
     }
