@@ -30,7 +30,9 @@ public final class GenerateNewObjectRecord implements GenerateNewObject {
                       + item.uuid()
                       + ", ($T) "
                       + resultSetName
-                      + ".getObject($S))"
+                      + ".getObject($S), "
+                      + true
+                      + ")"
                       + postfix
                       + "\n";
 

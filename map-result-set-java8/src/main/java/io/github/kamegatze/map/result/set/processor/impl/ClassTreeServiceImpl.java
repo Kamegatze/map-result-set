@@ -10,7 +10,7 @@ import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
 
-public class ClassTreeServiceImpl implements ClassTreeService {
+public final class ClassTreeServiceImpl implements ClassTreeService {
   private final ProcessingEnvironment processingEnvironment;
 
   public ClassTreeServiceImpl(ProcessingEnvironment processingEnvironment) {

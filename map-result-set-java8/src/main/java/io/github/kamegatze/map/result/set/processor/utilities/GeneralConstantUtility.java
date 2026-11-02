@@ -18,6 +18,8 @@ public final class GeneralConstantUtility {
   public static final String VARIABLE_RESULT_SET_ONE_ENSURE = "rs";
   public static final String VARIABLE_RESULT_SET_TWO_ENSURE = "rs1";
 
+  public static final String IS_CLOSE_RESULT_SET = "isCloseResultSet";
+
   public static final String LOGGING_LEVEL_KEY =
       "map.result.set.annotation.processing.logging.level";
 }

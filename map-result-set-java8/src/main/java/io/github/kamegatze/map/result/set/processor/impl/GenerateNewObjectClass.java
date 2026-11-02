@@ -57,7 +57,9 @@ public final class GenerateNewObjectClass implements GenerateNewObject {
                         .append(item.uuid())
                         .append(",($T) ")
                         .append(resultSetName)
-                        .append(".getObject($S)))")
+                        .append(".getObject($S),")
+                        .append(true)
+                        .append("))")
                         .toString(),
                     ResultSet.class,
                     CodeUtility.getColumnName(it, policy));
@@ -73,7 +75,9 @@ public final class GenerateNewObjectClass implements GenerateNewObject {
                       .append(",")
                       .append("($T) ")
                       .append(resultSetName)
-                      .append(".getObject($S)))")
+                      .append(".getObject($S),")
+                      .append(true)
+                      .append("))")
                       .toString(),
                   ResultSet.class,
                   CodeUtility.getColumnName(it, policy));

@@ -6,7 +6,7 @@ import java.util.Objects;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
 
-class ClassTreeSimple implements ClassTree {
+final class ClassTreeSimple implements ClassTree {
 
   private final String name;
   private final String uuid;
